@@ -1,5 +1,6 @@
+from __future__ import annotations
 from decimal import Decimal
-from constants import RawDuration
+from model.constants import RawDuration
 from typing import List
 
 
@@ -18,8 +19,17 @@ class Duration:
         self.raw_duration: Decimal = raw_duration
         self.parts: List[Decimal] = self._build_parts(raw_duration)
 
-    def __sub__(self, other: "Duration") -> "Duration":
+    def __add__(self, other: Duration) -> Duration:
+        return Duration(self.raw_duration + other.raw_duration)
+
+    def __sub__(self, other: Duration) -> Duration:
         return Duration((self.raw_duration - other.raw_duration).abs())
+
+    def __repr__(self) -> str:
+        def format_ratio(numerator: int, denominator: int) -> str:
+            return str(numerator) if denominator == 1 else f"{numerator}/{denominator}"
+
+        return "+".join(format_ratio(*part.as_integer_ratio()) for part in self.parts)
 
     def _build_parts(cls, raw_duration: Decimal) -> List[RawDuration]:
         parts = list()
@@ -28,3 +38,7 @@ class Duration:
                 raw_duration -= partition
                 parts.append(partition)
         return parts
+
+    @property
+    def is_compound(self):
+        return len(self.parts) > 1

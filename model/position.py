@@ -1,5 +1,6 @@
-from constants import OCTAVE_SUBDIVISIONS
-from interval import Interval
+from __future__ import annotations
+from model.constants import OCTAVE_SUBDIVISIONS
+from model.interval import Interval
 
 
 class Position:
@@ -7,5 +8,8 @@ class Position:
         self.abs_position = abs_position
         self.octave, self.rel_position = divmod(self.abs_position, OCTAVE_SUBDIVISIONS)
 
-    def __sub__(self, other: "Position") -> Interval:
-        return Interval(self, other)
+    def __repr__(self) -> str:
+        return f"{self.octave}[{self.rel_position}]"
+
+    def __sub__(self, other: Position) -> Interval:
+        return Interval(other, self)
