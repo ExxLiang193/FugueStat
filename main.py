@@ -24,14 +24,15 @@ if __name__ == "__main__":
     from algorithm.model.skip_sequence import SkipSequence
     from pprint import PrettyPrinter
     from workers.parsers.music_xml_parser import MusicXMLParser
+    from workers.fugue_analyzer import FugueAnalyzer
 
     pp = PrettyPrinter(indent=4)
 
     t0 = time()
     music_xml_parser = MusicXMLParser(args.file_name)
     composition = music_xml_parser.to_composition()
-    skip = SkipSequence(composition.voices)
-    pp.pprint([(f"#{i}", voices) for i, voices in enumerate(skip.head)])
+    analyzer = FugueAnalyzer(composition)
+    pp.pprint(analyzer.get_subject().notes)
     # seq_1 = NoteSequence(
     #     [
     #         Note.from_raw(40, Decimal("2")),
