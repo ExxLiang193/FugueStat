@@ -18,23 +18,26 @@ class SkipNode:
 
 
 class SkipSequence:
-    def __init__(self, voices: List[NoteSequence]) -> None:
+    def __init__(self, voices: Dict[int, NoteSequence]) -> None:
         self.head: List[Dict[int, SkipNode]] = self._parse_sequences(voices)
 
-    def _parse_sequences(self, voices: List[NoteSequence]) -> List[Dict[int, SkipNode]]:
+    def _parse_sequences(self, voices: Dict[int, NoteSequence]) -> List[Dict[int, SkipNode]]:
+        for voice in voices.values():
+            voice.optimize()
+
         timestamp_sequences: Iterable[Iterable[Decimal]] = (
             accumulate(
                 voice.notes,
                 lambda cur_timestamp, note: cur_timestamp + note.duration.raw_duration,
                 initial=Decimal("0.0"),
             )
-            for voice in voices
+            for voice in voices.values()
         )
         unique_timestamps: List[Decimal] = sorted(set(chain.from_iterable(timestamp_sequences)))
         timestamp_by_idx: Dict[int, Decimal] = {timestamp: idx for idx, timestamp in enumerate(unique_timestamps)}
 
         result: List[Dict[int, SkipNode]] = [dict() for _ in unique_timestamps]
-        for voice_idx, note_sequence in enumerate(voices):
+        for voice_idx, note_sequence in voices.items():
             cur_time = Decimal("0.0")
             for i in range(len(voices[voice_idx].notes)):
                 result[timestamp_by_idx[cur_time]][voice_idx] = SkipNode(

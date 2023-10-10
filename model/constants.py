@@ -2,6 +2,8 @@ from dataclasses import dataclass
 from decimal import Decimal
 
 
+MAX_VOICE_COUNT = 8
+ALTER_DEFAULT = 0
 OCTAVE_SUBDIVISIONS = 12
 
 
@@ -14,3 +16,24 @@ class RawDuration:
     NoteQuarter = Decimal("1")
     NoteHalf = Decimal("2")
     NoteWhole = Decimal("4")
+
+
+@dataclass(frozen=True)
+class AccidentalSymbol:
+    TripleFlat = "bbb"
+    DoubleFlat = "bb"
+    SingleFlat = "b"
+    Natural = ""
+    SingleSharp = "#"
+    DoubleSharp = "x"
+
+
+@dataclass(frozen=True)
+class BaseNoteName:
+    A = "A"
+    B = "B"
+    C = "C"
+    D = "D"
+    E = "E"
+    F = "F"
+    G = "G"

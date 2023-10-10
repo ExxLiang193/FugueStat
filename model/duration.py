@@ -35,8 +35,9 @@ class Duration:
         parts = list()
         for partition in cls.PARTITIONS:
             if partition <= raw_duration:
-                raw_duration -= partition
-                parts.append(partition)
+                count: Decimal = raw_duration // partition
+                raw_duration -= count * partition
+                parts.extend([partition for _ in range(int(count))])
         return parts
 
     @property

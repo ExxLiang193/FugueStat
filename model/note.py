@@ -11,7 +11,7 @@ class Note:
         self.duration: Duration = duration
 
     def __repr__(self) -> str:
-        return f"{self.position}{{{self.duration}}}"
+        return f"{'Rest' if self.is_rest() else 'Note'}({self.position}{{{self.duration}}})"
 
     @classmethod
     def from_raw(cls, abs_position: Optional[int], raw_duration: Decimal) -> Note:
@@ -19,3 +19,7 @@ class Note:
 
     def is_rest(self):
         return self.position is None
+
+    def extend_duration(self, other: Note) -> None:
+        assert self.position == other.position
+        self.duration += other.duration
