@@ -37,10 +37,10 @@ class NoteSequence:
     def optimize(self) -> NoteSequence:
         if len(self.notes) <= 0:
             return self
-        result = [self.notes[0]]
+        result: List[Note] = [self.notes[0]]
         for i in range(1, len(self.notes)):
             if self.notes[i].is_rest() and result[-1].is_rest():
-                result[-1] = Note(self.notes[i].position, self.notes[i].duration + result[-1].duration)
+                result[-1].extend_duration(self.notes[i])
             else:
                 result.append(self.notes[i])
         self.notes = result

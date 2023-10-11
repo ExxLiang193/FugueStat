@@ -32,7 +32,7 @@ if __name__ == "__main__":
     music_xml_parser = MusicXMLParser(args.file_name)
     composition = music_xml_parser.to_composition()
     analyzer = FugueAnalyzer(composition)
-    pp.pprint(analyzer.get_subject().notes)
+    pp.pprint(analyzer.extract_subject().notes)
     # seq_1 = NoteSequence(
     #     [
     #         Note.from_raw(40, Decimal("2")),
