@@ -21,6 +21,7 @@ class SkipNode:
 class SkipSequence:
     def __init__(self, voices: Dict[int, NoteSequence]) -> None:
         self.head: List[Dict[int, SkipNode]] = self._parse_sequences(voices)
+        self.voices: Dict[int, NoteSequence] = voices
 
     def __getitem__(self, i: int) -> Dict[int, SkipNode]:
         return self.head[i]
@@ -46,11 +47,11 @@ class SkipSequence:
         result: List[Dict[int, SkipNode]] = [dict() for _ in unique_timestamps]
         for voice_idx, note_sequence in voices.items():
             cur_time = Decimal("0.0")
-            for i in range(len(voices[voice_idx].notes)):
+            for i in range(len(voices[voice_idx])):
                 result[timestamp_by_idx[cur_time]][voice_idx] = SkipNode(
-                    note_sequence.notes[i], timestamp_by_idx[cur_time + note_sequence.notes[i].duration.raw_duration]
+                    note_sequence[i], timestamp_by_idx[cur_time + note_sequence[i].duration.raw_duration]
                 )
-                cur_time += note_sequence.notes[i].duration.raw_duration
+                cur_time += note_sequence[i].duration.raw_duration
 
         return result
 

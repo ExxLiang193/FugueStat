@@ -10,6 +10,12 @@ class NoteSequence:
     def __init__(self, notes: List[Note] = None) -> None:
         self.notes: List[Note] = notes or list()
 
+    def __getitem__(self, idx) -> Note:
+        return self.notes[idx]
+
+    def __len__(self) -> int:
+        return len(self.notes)
+
     def __add__(self, other: NoteSequence) -> NoteSequence:
         return NoteSequence(self.notes + other.notes)
 
@@ -33,6 +39,22 @@ class NoteSequence:
 
     def merge_last_note(self, other: Note) -> None:
         self.notes[-1].extend_duration(other)
+
+    def next_note(self, start: int = 0) -> Optional[int]:
+        ref = start + 1
+        while ref < len(self.notes):
+            if not self.notes[ref].is_rest():
+                return ref
+            ref += 1
+        return None
+
+    def next_rest(self, start: int = 0) -> Optional[int]:
+        ref = start + 1
+        while ref < len(self.notes):
+            if self.notes[ref].is_rest():
+                return ref
+            ref += 1
+        return None
 
     def optimize(self) -> NoteSequence:
         if len(self.notes) <= 0:
