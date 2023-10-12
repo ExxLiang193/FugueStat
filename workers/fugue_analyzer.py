@@ -36,8 +36,7 @@ class FugueAnalyzer:
             moment = self.skip_sequence.next_moment(moment, leading_voice)
         return subject
 
-    def match_subject(self, subject: NoteSequence, voice: int) -> List[NoteSequence]:
-        stream: NoteSequence = self.skip_sequence.voices[voice]
+    def match_subject(self, subject: NoteSequence):
         metrics = [
             DistanceMetrics.replacement_with_penalty,
             DistanceMetrics.insertion_without_expansion,
@@ -45,6 +44,10 @@ class FugueAnalyzer:
             DistanceMetrics.deletion_without_compression,
             DistanceMetrics.deletion_with_compression,
         ]
-        stream_matcher = StreamMatcher(stream, 1, self.sensitivity, self.min_match, metrics)
-        match, length = stream_matcher.match_next(subject, 1)
-        return [match]
+        all_results = dict()
+        for voice in self.skip_sequence.voices.keys():
+            stream = self.skip_sequence.voices[voice]
+            stream_matcher = StreamMatcher(stream, 1, self.sensitivity, self.min_match, metrics)
+            result = stream_matcher.match_all(subject)
+            all_results[voice] = result
+        return all_results

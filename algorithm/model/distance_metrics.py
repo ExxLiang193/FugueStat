@@ -7,12 +7,12 @@ import numpy as np
 class ScalingFunctions:
     @classmethod
     @lru_cache(maxsize=32)
-    def sqrt(cls, value: int, scale: int = 1) -> float:
+    def sqrt(cls, value: int, scale: int = 10) -> float:
         return math.sqrt(scale * value)
 
     @classmethod
     @lru_cache(maxsize=32)
-    def floored_sqrt(cls, value: int, scale: int = 1) -> float:
+    def floored_sqrt(cls, value: int, scale: int = 10) -> float:
         return math.floor(math.sqrt(scale * value))
 
 

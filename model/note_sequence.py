@@ -19,9 +19,6 @@ class NoteSequence:
     def __add__(self, other: NoteSequence) -> NoteSequence:
         return NoteSequence(self.notes + other.notes)
 
-    def __repr__(self) -> str:
-        return repr(self.notes)
-
     @property
     def intervals(self) -> List[Optional[Interval]]:
         def parse(left_note: Note, right_note: Note) -> Optional[Interval]:
@@ -40,7 +37,7 @@ class NoteSequence:
     def merge_last_note(self, other: Note) -> None:
         self.notes[-1].extend_duration(other)
 
-    def next_note(self, start: int = 0) -> Optional[int]:
+    def next_note_idx(self, start: int = 0) -> Optional[int]:
         ref = start + 1
         while ref < len(self.notes):
             if not self.notes[ref].is_rest():
@@ -48,7 +45,7 @@ class NoteSequence:
             ref += 1
         return None
 
-    def next_rest(self, start: int = 0) -> Optional[int]:
+    def next_rest_idx(self, start: int = 0) -> Optional[int]:
         ref = start + 1
         while ref < len(self.notes):
             if self.notes[ref].is_rest():

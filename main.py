@@ -23,14 +23,20 @@ def parse_args():
 if __name__ == "__main__":
     enable_safe_float_handling()
     args = parse_args()
-
-    pp = PrettyPrinter(indent=4)
     config = get_config()
 
+    pp = PrettyPrinter(indent=4)
+
     t0 = time()
+
     music_xml_parser = MusicXMLParser(args.file_name)
     composition = music_xml_parser.to_composition()
     analyzer = FugueAnalyzer(composition, float(config["sensitivity"]), int(config["min-match"]))
     subject: NoteSequence = analyzer.extract_subject()
-    pp.pprint(analyzer.match_subject(subject, 6)[0].notes)
+    results = analyzer.match_subject(subject)
+    for voice in results.keys():
+        print("#" * voice, voice)
+        for match in results[voice]:
+            pp.pprint(match.notes)
+
     print("Total time: {}".format(round(time() - t0, 5)))
