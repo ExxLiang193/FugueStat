@@ -1,9 +1,9 @@
 from model.note_sequence import NoteSequence
 from algorithm.kmp_soft import KMPSoft
-from algorithm.edit_distance import EditDistance
+from algorithm.adaptive_edit_distance import AdaptiveEditDistance
 from typing import List, Callable, Tuple, Optional
 from collections import namedtuple
-from algorithm.edit_distance import RankInfo
+from algorithm.adaptive_edit_distance import RankInfo
 from algorithm.model.distance_metrics import ScalingFunctions
 
 TopRank = namedtuple("TopRank", ("best_stream_match", "best_pattern_match", "best_overall_match"))
@@ -36,7 +36,7 @@ class StreamMatcher:
             for i in range(stream_start, max_stream_intervals)
         ]
 
-        edit_distance: EditDistance = EditDistance(
+        edit_distance: AdaptiveEditDistance = AdaptiveEditDistance(
             stream_intervals, pattern_intervals, self.metrics, ScalingFunctions.sqrt
         )
 

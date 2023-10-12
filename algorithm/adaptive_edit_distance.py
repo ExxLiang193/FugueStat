@@ -5,7 +5,7 @@ from collections import namedtuple
 RankInfo = namedtuple("RankInfo", ("offset", "normalized_distance"))
 
 
-class EditDistance:
+class AdaptiveEditDistance:
     def __init__(self, stream: List[int], pattern: List[int], metrics: List[Callable], scaling_func: Callable) -> None:
         self.stream: List[int] = stream
         self.pattern: List[int] = pattern
@@ -24,10 +24,7 @@ class EditDistance:
     def get_rank(self, min_match: int) -> List[RankInfo]:
         S, P = len(self.stream), len(self.pattern)
         diagonal_offset: int = S - P
-        limits: Tuple[int, int] = (
-            min(0, -P + min_match - diagonal_offset),
-            max(1, S - min_match + 1 - diagonal_offset),
-        )
+        limits: Tuple[int, int] = (min(0, -P + min_match), max(2, S - min_match + 1))
 
         def normalized_diagonal_distance(memo: np.array, offset: int) -> float:
             offset_diag = np.diagonal(memo, offset=offset)
@@ -35,7 +32,7 @@ class EditDistance:
 
         return sorted(
             [
-                RankInfo(i + diagonal_offset, normalized_diagonal_distance(self._memo, i))
+                RankInfo(i, normalized_diagonal_distance(self._memo, i - diagonal_offset))
                 for i in range(limits[0], limits[1])
             ],
             key=lambda rank_info: (rank_info.normalized_distance, abs(rank_info.offset)),

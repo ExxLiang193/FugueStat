@@ -25,12 +25,12 @@ if __name__ == "__main__":
     args = parse_args()
 
     pp = PrettyPrinter(indent=4)
+    config = get_config()
 
     t0 = time()
-    config = get_config()
     music_xml_parser = MusicXMLParser(args.file_name)
     composition = music_xml_parser.to_composition()
     analyzer = FugueAnalyzer(composition, float(config["sensitivity"]), int(config["min-match"]))
     subject: NoteSequence = analyzer.extract_subject()
-    pp.pprint(analyzer.match_subject(subject, 5)[0].notes)
+    pp.pprint(analyzer.match_subject(subject, 6)[0].notes)
     print("Total time: {}".format(round(time() - t0, 5)))
