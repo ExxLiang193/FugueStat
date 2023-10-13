@@ -51,5 +51,7 @@ class FugueAnalyzer:
             stream = self.skip_sequence.voices[voice]
             stream_matcher = StreamMatcher(stream, 1, self.sensitivity, self.min_match, metrics)
             result = stream_matcher.match_all(subject)
+            for sequence in result:
+                sequence.lstrip_rests()
             all_results[voice] = result
         return all_results

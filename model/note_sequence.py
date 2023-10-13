@@ -53,6 +53,12 @@ class NoteSequence:
             ref += 1
         return None
 
+    def lstrip_rests(self) -> None:
+        strip_idx = self.next_note_idx(0)
+        if not self.notes[0].is_rest() and strip_idx == 1:
+            return
+        del self.notes[:strip_idx]
+
     def optimize(self) -> NoteSequence:
         if len(self.notes) <= 0:
             return self
