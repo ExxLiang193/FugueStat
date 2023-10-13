@@ -2,7 +2,7 @@ from algorithm.model.skip_sequence import SkipSequence
 from model.composition import Composition
 from model.note_sequence import NoteSequence
 from model.exceptions import InvalidFugueFormError
-from typing import Tuple, List
+from typing import Tuple, List, Dict
 from workers.stream_matcher import StreamMatcher
 from algorithm.model.distance_metrics import DistanceMetrics
 
@@ -38,7 +38,7 @@ class FugueAnalyzer:
             moment = self.skip_sequence.next_moment(moment, leading_voice)
         return subject
 
-    def match_subject(self, subject: NoteSequence):
+    def match_subject(self, subject: NoteSequence) -> Dict[int, List[NoteSequence]]:
         metrics = [
             DistanceMetrics.replacement_with_penalty,
             DistanceMetrics.insertion_without_expansion,

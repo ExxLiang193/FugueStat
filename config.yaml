@@ -1,2 +1,2 @@
-sensitivity: 0.5
-min-match: 6
+sensitivity: 0.3
+min-match: 8

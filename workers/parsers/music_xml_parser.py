@@ -7,7 +7,7 @@ from model.note import Note
 from model.tagged.note import TaggedNote
 from model.note_name import NoteName
 from decimal import Decimal
-from typing import TYPE_CHECKING, Iterable, Dict
+from typing import TYPE_CHECKING, Dict, List
 from utility.id_generator import IdGenerator
 
 if TYPE_CHECKING:
@@ -15,9 +15,12 @@ if TYPE_CHECKING:
 
 
 class MusicXMLParser:
-    def __init__(self, file_name: str, version: str = "3.1"):
+    FILE_EXTENSION = ".musicxml"
+
+    def __init__(self, file_name: str, version: str = "3.1") -> None:
+        assert file_name.endswith(self.FILE_EXTENSION), f"Not a {self.FILE_EXTENSION} file!"
         self.file_name: str = file_name
-        self.version: str = version
+        self._version: str = version
         self._note_id_generators: Dict[int, IdGenerator] = defaultdict(IdGenerator)
 
     def _create_note(self, note_element: ET.Element, duration_scale: Decimal, voice_idx: int) -> Note:
@@ -36,7 +39,7 @@ class MusicXMLParser:
     def to_composition(self) -> Composition:
         voices: Dict[int, NoteSequence] = defaultdict(NoteSequence)
         xml_root: ET.Element = ET.parse(self.file_name).getroot()
-        measures: Iterable[ET.Element] = xml_root.findall("part/measure")
+        measures: List[ET.Element] = xml_root.findall("part/measure")
         duration_scale: Decimal = Decimal(measures[0].find("attributes/divisions").text)
         for measure_element in measures:
             for note_element in measure_element.findall("note"):
