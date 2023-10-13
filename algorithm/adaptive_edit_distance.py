@@ -18,13 +18,13 @@ class AdaptiveEditDistance:
         memo: np.array = np.zeros((S + 1, P + 1))
         for i in range(1, S + 1):
             for j in range(1, P + 1):
-                memo[i][j] = min(self.scale(metric(memo, self.stream, self.pattern, i, j)) for metric in self.metrics)
+                memo[i][j] = min(metric(memo, self.stream, self.pattern, i, j, self.scale) for metric in self.metrics)
         return memo
 
     def get_rank(self, min_match: int) -> List[RankInfo]:
         S, P = len(self.stream), len(self.pattern)
         diagonal_offset: int = S - P
-        limits: Tuple[int, int] = (min(0, -P + min_match), max(2, S - min_match + 1))
+        limits: Tuple[int, int] = (min(-1, -P + min_match), max(2, S - min_match + 1))
 
         def normalized_diagonal_distance(memo: np.array, offset: int) -> float:
             offset_diag = np.diagonal(memo, offset=offset)
