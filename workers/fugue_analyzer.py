@@ -9,6 +9,8 @@ from algorithm.model.distance_metrics import DistanceMetrics
 
 class FugueAnalyzer:
     def __init__(self, composition: Composition, sensitivity: float, min_match: int) -> None:
+        assert sensitivity >= 0
+        assert min_match >= 1
         self.composition: Composition = composition
         self.skip_sequence: SkipSequence = SkipSequence(composition.voices)
         self.sensitivity: float = sensitivity
