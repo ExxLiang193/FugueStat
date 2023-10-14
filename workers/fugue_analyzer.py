@@ -39,12 +39,13 @@ class FugueAnalyzer:
         return subject
 
     def match_subject(self, subject: NoteSequence) -> Dict[int, List[NoteSequence]]:
+        distance_metric: DistanceMetrics = DistanceMetrics(rest_penalty_factor=10, inversion_penalty_factor=2)
         metrics = [
-            DistanceMetrics.replacement_with_penalty,
-            DistanceMetrics.insertion_without_expansion,
-            DistanceMetrics.insertion_with_expansion,
-            DistanceMetrics.deletion_without_compression,
-            DistanceMetrics.deletion_with_compression,
+            distance_metric.replacement_with_penalty,
+            distance_metric.insertion_without_expansion,
+            distance_metric.insertion_with_expansion,
+            distance_metric.deletion_without_compression,
+            distance_metric.deletion_with_compression,
         ]
         all_results = dict()
         for voice in self.skip_sequence.voices.keys():

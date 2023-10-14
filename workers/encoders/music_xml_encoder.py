@@ -30,12 +30,11 @@ class MusicXMLEncoder:
                 voice_idx: int = int(note_element.find("voice").text)
                 cur_note_element_id = file_note_id_pos[voice_idx]
                 sequence_idx = matches_voice_pos[voice_idx][0]
-                note_idx = matches_voice_pos[voice_idx][1]
-                try:
-                    cur_matched_note_ids = matches[voice_idx][sequence_idx][note_idx].ids
-                except IndexError:
+                if sequence_idx >= len(matches[voice_idx]):
                     file_note_id_pos[voice_idx] += 1
                     continue
+                note_idx = matches_voice_pos[voice_idx][1]
+                cur_matched_note_ids = matches[voice_idx][sequence_idx][note_idx].ids
                 if cur_note_element_id in cur_matched_note_ids:
                     note_element.attrib["color"] = "#FFA500"
                 if cur_note_element_id >= cur_matched_note_ids[-1]:

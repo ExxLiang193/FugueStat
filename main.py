@@ -9,6 +9,10 @@ from workers.fugue_analyzer import FugueAnalyzer
 from config import get_config
 from typing import List, Dict
 
+import numpy as np
+
+np.set_printoptions(edgeitems=30, linewidth=100000)
+
 
 def enable_safe_float_handling():
     c = getcontext()
@@ -36,14 +40,15 @@ if __name__ == "__main__":
     analyzer: FugueAnalyzer = FugueAnalyzer(composition, float(config["sensitivity"]), int(config["min-match"]))
     subject: NoteSequence = analyzer.extract_subject()
     matches: Dict[int, List[NoteSequence]] = analyzer.match_subject(subject)
-    # for voice in matches.keys():
-    #     print("#" * voice, voice)
-    #     for match in matches[voice]:
-    #         pp.pprint(match.notes)
+
+    print("Total time: {}".format(round(time() - t0, 5)))
+
+    for voice in matches.keys():
+        print("#" * voice, voice)
+        for match in matches[voice]:
+            pp.pprint(match.notes)
     music_xml_encoder: MusicXMLEncoder = MusicXMLEncoder(args.file_name)
     write = True
     if write:
         new_file_name = music_xml_encoder.from_analysis(matches, write=write)
         print(f"Output: {new_file_name}")
-
-    print("Total time: {}".format(round(time() - t0, 5)))

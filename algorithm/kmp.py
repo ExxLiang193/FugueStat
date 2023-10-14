@@ -19,7 +19,6 @@ def lsp(pattern):
 def kmp(text: Iterable, pattern: Iterable) -> List[int]:
     matches = list()
     pi = lsp(pattern)
-    print(pi)
     T, P = len(text), len(pattern)
     prefix_idx = 0
     for idx in range(T):
@@ -33,6 +32,3 @@ def kmp(text: Iterable, pattern: Iterable) -> List[int]:
             prefix_idx = pi[P - 1]
             matches.append(idx - P + 1)
     return matches
-
-
-print(kmp([1, 3, 1, 2, 1, 3, 3, 1, 1, 2], [1, 3, 1, 3, 2, 1, 3]))

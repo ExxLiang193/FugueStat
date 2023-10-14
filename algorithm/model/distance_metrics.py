@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Iterable, Callable
+from typing import Iterable, Callable, Optional
 from functools import lru_cache
 import math
 import numpy as np
@@ -7,55 +7,66 @@ import numpy as np
 class ScalingFunctions:
     @classmethod
     @lru_cache(maxsize=32)
-    def sqrt(cls, value: int, scale: int = 2) -> float:
+    def sqrt(cls, value: int, scale: int = 1) -> float:
         return math.sqrt(scale * value)
 
     @classmethod
     @lru_cache(maxsize=32)
-    def floored_sqrt(cls, value: int, scale: int = 2) -> float:
+    def floored_sqrt(cls, value: int, scale: int = 1) -> float:
         return math.floor(math.sqrt(scale * value))
 
 
 class DistanceMetrics:
-    @classmethod
-    def replacement(cls, memo: np.array, x: Iterable, y: Iterable, cur_i: int, cur_j: int, scale: Callable) -> int:
-        return memo[cur_i - 1][cur_j - 1] + scale(abs(x[cur_i - 1] - y[cur_j - 1]))
+    def __init__(self, rest_penalty_factor: int = 10, inversion_penalty_factor: int = 2) -> None:
+        self._rest_penalty_factor: int = rest_penalty_factor
+        self._inversion_penalty_factor: int = inversion_penalty_factor
 
-    @classmethod
+    def _safe_sub(self, val_1: float, val_2: float) -> float:
+        match (val_1, val_2):
+            case (None, None):
+                return 0.0
+            case (None, _):
+                return self._rest_penalty_factor * abs(val_2)
+            case (_, None):
+                return self._rest_penalty_factor * abs(val_1)
+            case (_, _):
+                penalty = 1 if (val_1 < 0) == (val_2 < 0) else self._inversion_penalty_factor
+                return penalty * abs(val_1 - val_2)
+
+    def _safe_add(self, val_1: float, val_2: float) -> Optional[float]:
+        return None if val_1 is None or val_2 is None else val_1 + val_2
+
     def replacement_with_penalty(
-        cls, memo: np.array, x: Iterable, y: Iterable, cur_i: int, cur_j: int, scale: Callable
+        self, memo: np.array, x: Iterable, y: Iterable, cur_i: int, cur_j: int, scale: Callable
     ) -> int:
-        penalty = 1 if (x[cur_i - 1] < 0) == (y[cur_j - 1] < 0) else 2
-        return memo[cur_i - 1][cur_j - 1] + scale(penalty * abs(x[cur_i - 1] - y[cur_j - 1]))
+        return memo[cur_i - 1][cur_j - 1] + scale(self._safe_sub(x[cur_i - 1], y[cur_j - 1]))
 
-    @classmethod
     def insertion_without_expansion(
-        cls, memo: np.array, x: Iterable, y: Iterable, cur_i: int, cur_j: int, scale: Callable
+        self, memo: np.array, x: Iterable, y: Iterable, cur_i: int, cur_j: int, scale: Callable
     ) -> int:
-        return memo[cur_i][cur_j - 1] + scale(abs(y[cur_j - 1]))
+        return memo[cur_i][cur_j - 1] + scale(abs(y[cur_j - 1] or 0.0))
 
-    @classmethod
     def insertion_with_expansion(
-        cls, memo: np.array, x: Iterable, y: Iterable, cur_i: int, cur_j: int, scale: Callable
+        self, memo: np.array, x: Iterable, y: Iterable, cur_i: int, cur_j: int, scale: Callable
     ) -> int:
         return (
             float("inf")
             if cur_j < 2
-            else memo[cur_i - 1][cur_j - 2] + scale(abs((y[cur_j - 2] + y[cur_j - 1]) - x[cur_i - 1]))
+            else memo[cur_i - 1][cur_j - 2]
+            + scale(self._safe_sub(self._safe_add(y[cur_j - 2], y[cur_j - 1]), x[cur_i - 1]))
         )
 
-    @classmethod
     def deletion_without_compression(
-        cls, memo: np.array, x: Iterable, y: Iterable, cur_i: int, cur_j: int, scale: Callable
+        self, memo: np.array, x: Iterable, y: Iterable, cur_i: int, cur_j: int, scale: Callable
     ) -> int:
-        return memo[cur_i - 1][cur_j] + scale(abs(x[cur_i - 1]))
+        return memo[cur_i - 1][cur_j] + scale(abs(x[cur_i - 1] or 0.0))
 
-    @classmethod
     def deletion_with_compression(
-        cls, memo: np.array, x: Iterable, y: Iterable, cur_i: int, cur_j: int, scale: Callable
+        self, memo: np.array, x: Iterable, y: Iterable, cur_i: int, cur_j: int, scale: Callable
     ) -> int:
         return (
             float("inf")
             if cur_i < 2
-            else memo[cur_i - 2][cur_j - 1] + scale(abs((x[cur_i - 2] + x[cur_i - 1]) - y[cur_j - 1]))
+            else memo[cur_i - 2][cur_j - 1]
+            + scale(self._safe_sub(self._safe_add(x[cur_i - 2], x[cur_i - 1]), y[cur_j - 1]))
         )

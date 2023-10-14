@@ -2,16 +2,10 @@ from model.note_sequence import NoteSequence
 from algorithm.kmp_soft import KMPSoft
 from algorithm.adaptive_edit_distance import AdaptiveEditDistance
 from typing import List, Callable, Tuple, Optional
-from collections import namedtuple
-from algorithm.adaptive_edit_distance import RankInfo
 from algorithm.model.distance_metrics import ScalingFunctions
-
-TopRank = namedtuple("TopRank", ("best_stream_match", "best_pattern_match", "best_overall_match"))
 
 
 class StreamMatcher:
-    PADDING_FACTOR = 2
-
     def __init__(
         self, stream: NoteSequence, lps_tolerance: int, sensitivity: float, min_match: int, metrics: List[Callable]
     ) -> None:
@@ -21,64 +15,55 @@ class StreamMatcher:
         self.metrics: List[Callable] = metrics
         self._kmp_utility = KMPSoft(lps_tolerance)
 
-    def _extract_intervals(self, pattern: NoteSequence, stream_start: int) -> Tuple[List[int], List[int]]:
-        pattern_intervals: List[int] = [0 if interval is None else interval.value for interval in pattern.intervals]
-        max_stream_intervals: int = min(
-            stream_start + self.PADDING_FACTOR * len(pattern_intervals), len(self.stream) - 1
-        )
+    def _extract_intervals(
+        self, pattern: NoteSequence, stream_start: int, padding_factor: int
+    ) -> Tuple[List[int], List[int]]:
+        pattern_intervals: List[int] = [None if interval is None else interval.value for interval in pattern.intervals]
+        max_stream_intervals: int = min(stream_start + padding_factor * len(pattern_intervals), len(self.stream) - 1)
         stream_intervals: List[int] = [
-            0 if (interval := self.stream.intervals[i]) is None else interval.value
+            None if (interval := self.stream.intervals[i]) is None else interval.value
             for i in range(stream_start, max_stream_intervals)
         ]
         return pattern_intervals, stream_intervals
 
-    def _get_top_rank(self, match_rank: List[RankInfo]) -> TopRank:
-        overall_match: RankInfo = match_rank[0]
-        stream_match: RankInfo = next(offset_rank for offset_rank in match_rank if offset_rank.offset > 0)
-        pattern_match: RankInfo = next(offset_rank for offset_rank in match_rank if offset_rank.offset <= 0)
-        return TopRank(stream_match, pattern_match, overall_match)
+    def _converge_window(self, pattern: NoteSequence, stream_start: int):
+        pattern_intervals, stream_intervals = self._extract_intervals(pattern, stream_start, 2)
 
-    def _push_forward(self, pattern: NoteSequence, stream_start: int) -> int:
-        pattern_intervals, stream_intervals = self._extract_intervals(pattern, stream_start)
-        edit_distance: AdaptiveEditDistance = AdaptiveEditDistance(
-            stream_intervals[::-1], pattern_intervals[::-1], self.metrics, ScalingFunctions.sqrt
-        )
-
-        while True:
-            match_rank: List[RankInfo] = edit_distance.get_rank(self.min_match)
-            top_rank: TopRank = self._get_top_rank(match_rank)
-            if top_rank.best_overall_match.offset == 0:
-                return len(stream_intervals) - len(edit_distance.stream)
-            elif top_rank.best_overall_match.offset > 0:
-                edit_distance.truncate_stream(top_rank.best_overall_match.offset)
-            elif top_rank.best_overall_match.offset < 0:
-                edit_distance.truncate_pattern(abs(top_rank.best_overall_match.offset))
-
-    def _pull_back(self, pattern: NoteSequence, stream_start: int) -> Tuple[Optional[NoteSequence], int]:
-        pattern_intervals, stream_intervals = self._extract_intervals(pattern, stream_start)
-        edit_distance: AdaptiveEditDistance = AdaptiveEditDistance(
+        forward_edit_distance: AdaptiveEditDistance = AdaptiveEditDistance(
             stream_intervals, pattern_intervals, self.metrics, ScalingFunctions.sqrt
         )
+        forward_stream_limit, forward_pattern_limit = forward_edit_distance.get_limits()
+        forward_flag: bool = forward_stream_limit == 0
+        forward_stream_limit = len(stream_intervals) if forward_flag else forward_stream_limit
+        forward_pattern_limit = len(pattern_intervals) if forward_flag else forward_pattern_limit
+        stream_intervals = stream_intervals[:forward_stream_limit][::-1]
+        pattern_intervals = pattern_intervals[:forward_pattern_limit][::-1]
 
-        while True:
-            match_rank: List[RankInfo] = edit_distance.get_rank(self.min_match)
-            top_rank: TopRank = self._get_top_rank(match_rank)
-            if top_rank.best_overall_match.offset == 0:
-                if top_rank.best_overall_match.normalized_distance > self.sensitivity:
-                    return None, len(edit_distance.stream) - 1
-                result = NoteSequence(self.stream[stream_start : stream_start + len(edit_distance.stream) + 1])
-                return result, len(edit_distance.stream) - 1
-            elif top_rank.best_overall_match.offset > 0:
-                edit_distance.truncate_stream(top_rank.best_overall_match.offset)
-            elif top_rank.best_overall_match.offset < 0:
-                edit_distance.truncate_pattern(abs(top_rank.best_overall_match.offset))
+        backward_edit_distance: AdaptiveEditDistance = AdaptiveEditDistance(
+            stream_intervals, pattern_intervals, self.metrics, ScalingFunctions.sqrt
+        )
+        backward_stream_limit, backward_pattern_limit = backward_edit_distance.get_limits()
+        backward_flag: bool = backward_stream_limit == 0
+        backward_stream_limit = len(stream_intervals) if backward_flag else backward_stream_limit
+        backward_pattern_limit = len(pattern_intervals) if backward_flag else backward_pattern_limit
+        stream_intervals = stream_intervals[:backward_stream_limit][::-1]
+        pattern_intervals = pattern_intervals[:backward_pattern_limit][::-1]
+
+        if forward_flag and backward_flag:
+            return None, 1
+        elif forward_flag:
+            return None, forward_stream_limit - backward_stream_limit
+        match_start = stream_start + forward_stream_limit - backward_stream_limit
+        match_end = stream_start + forward_stream_limit
+        return (
+            NoteSequence(self.stream[match_start : match_end + 1]),
+            forward_stream_limit,
+        )
 
     def match_next(self, pattern: NoteSequence, stream_start: int) -> Tuple[Optional[NoteSequence], int]:
-        while (push_amount := self._push_forward(pattern, stream_start)) > 0:
-            stream_start += push_amount
-        match, pull_amount = self._pull_back(pattern, stream_start)
-        stream_start += pull_amount
-        return match, stream_start
+        while (results := self._converge_window(pattern, stream_start)) and (results[0] is None) and (results[1] != 0):
+            stream_start += results[1]
+        return results[0], stream_start + results[1]
 
     def match_all(self, pattern: NoteSequence) -> List[NoteSequence]:
         results = list()
