@@ -26,44 +26,32 @@ class StreamMatcher:
         ]
         return pattern_intervals, stream_intervals
 
-    def _converge_window(self, pattern: NoteSequence, stream_start: int):
+    def _push_forward(self, pattern: NoteSequence, stream_start: int):
+        pattern_intervals, stream_intervals = self._extract_intervals(pattern, stream_start, 2)
+
+        backward_edit_distance: AdaptiveEditDistance = AdaptiveEditDistance(
+            stream_intervals[::-1], pattern_intervals[::-1], self.metrics, ScalingFunctions.sqrt
+        )
+        backward_stream_limit, _ = backward_edit_distance.get_limits()
+        return len(stream_intervals) - backward_stream_limit
+
+    def _pull_back(self, pattern: NoteSequence, stream_start: int):
         pattern_intervals, stream_intervals = self._extract_intervals(pattern, stream_start, 2)
 
         forward_edit_distance: AdaptiveEditDistance = AdaptiveEditDistance(
             stream_intervals, pattern_intervals, self.metrics, ScalingFunctions.sqrt
         )
-        forward_stream_limit, forward_pattern_limit = forward_edit_distance.get_limits()
-        forward_flag: bool = forward_stream_limit == 0
-        forward_stream_limit = len(stream_intervals) if forward_flag else forward_stream_limit
-        forward_pattern_limit = len(pattern_intervals) if forward_flag else forward_pattern_limit
-        stream_intervals = stream_intervals[:forward_stream_limit][::-1]
-        pattern_intervals = pattern_intervals[:forward_pattern_limit][::-1]
-
-        backward_edit_distance: AdaptiveEditDistance = AdaptiveEditDistance(
-            stream_intervals, pattern_intervals, self.metrics, ScalingFunctions.sqrt
-        )
-        backward_stream_limit, backward_pattern_limit = backward_edit_distance.get_limits()
-        backward_flag: bool = backward_stream_limit == 0
-        backward_stream_limit = len(stream_intervals) if backward_flag else backward_stream_limit
-        backward_pattern_limit = len(pattern_intervals) if backward_flag else backward_pattern_limit
-        stream_intervals = stream_intervals[:backward_stream_limit][::-1]
-        pattern_intervals = pattern_intervals[:backward_pattern_limit][::-1]
-
-        if forward_flag and backward_flag:
-            return None, 1
-        elif forward_flag:
-            return None, forward_stream_limit - backward_stream_limit
-        match_start = stream_start + forward_stream_limit - backward_stream_limit
-        match_end = stream_start + forward_stream_limit
-        return (
-            NoteSequence(self.stream[match_start : match_end + 1]),
-            forward_stream_limit,
-        )
+        forward_stream_limit, _ = forward_edit_distance.get_limits()
+        if forward_stream_limit == 0:
+            return None, len(pattern)
+        stream_end: int = stream_start + forward_stream_limit + 1
+        return NoteSequence(self.stream[stream_start:stream_end]), forward_stream_limit
 
     def match_next(self, pattern: NoteSequence, stream_start: int) -> Tuple[Optional[NoteSequence], int]:
-        while (results := self._converge_window(pattern, stream_start)) and (results[0] is None) and (results[1] != 0):
-            stream_start += results[1]
-        return results[0], stream_start + results[1]
+        while (step := self._push_forward(pattern, stream_start)) and step > 0:
+            stream_start += step
+        match, step = self._pull_back(pattern, stream_start)
+        return match, stream_start + step
 
     def match_all(self, pattern: NoteSequence) -> List[NoteSequence]:
         results = list()
@@ -71,5 +59,6 @@ class StreamMatcher:
         while cur_stream_pos < len(self.stream) - self.min_match:
             match, cur_stream_pos = self.match_next(pattern, self.stream.next_note_idx(cur_stream_pos))
             if match is not None:
+                pp.pprint(match.notes)
                 results.append(match)
         return results

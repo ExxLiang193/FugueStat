@@ -39,7 +39,7 @@ class FugueAnalyzer:
         return subject
 
     def match_subject(self, subject: NoteSequence) -> Dict[int, List[NoteSequence]]:
-        distance_metric: DistanceMetrics = DistanceMetrics(rest_penalty_factor=10, inversion_penalty_factor=2)
+        distance_metric: DistanceMetrics = DistanceMetrics(rest_penalty_factor=5, inversion_penalty_factor=2)
         metrics = [
             distance_metric.replacement_with_penalty,
             distance_metric.insertion_without_expansion,
