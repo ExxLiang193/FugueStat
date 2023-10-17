@@ -3,7 +3,7 @@ from time import time
 from decimal import getcontext, FloatOperation
 from model.note_sequence import NoteSequence
 from pprint import PrettyPrinter
-from workers.parsers.music_xml_parser import MusicXMLParser
+from workers.parsers.musicxml.musicxml_parser import MusicXMLParser
 from workers.encoders.music_xml_encoder import MusicXMLEncoder
 from workers.fugue_analyzer import FugueAnalyzer
 from config import get_config

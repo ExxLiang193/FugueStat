@@ -23,3 +23,6 @@ class Note:
     def extend_duration(self, other: Note) -> None:
         assert self.position == other.position
         self.duration += other.duration
+
+    def is_tagged(self):
+        return hasattr(self, "ids")

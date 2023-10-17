@@ -74,7 +74,10 @@ class NoteSequence:
         result: List[Note] = [self.notes[0]]
         for i in range(1, len(self.notes)):
             if self.notes[i].is_rest() and result[-1].is_rest():
-                result[-1].extend_duration(self.notes[i])
+                if self.notes[i].is_tagged() == result[-1].is_tagged():
+                    result[-1].extend_duration(self.notes[i])
+                else:
+                    result.append(self.notes[i])
             else:
                 result.append(self.notes[i])
         self.notes = result

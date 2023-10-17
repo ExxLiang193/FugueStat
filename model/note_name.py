@@ -32,4 +32,5 @@ class NoteName:
         return (self.NAME_MAP[self.name] + self.accidental.alter) % OCTAVE_SUBDIVISIONS
 
     def as_position(self, octave: int) -> Position:
-        return Position(octave * OCTAVE_SUBDIVISIONS + self.rel_position)
+        rel_position: int = self.NAME_MAP[self.name] + self.accidental.alter
+        return Position((octave + rel_position // OCTAVE_SUBDIVISIONS) * OCTAVE_SUBDIVISIONS + self.rel_position)

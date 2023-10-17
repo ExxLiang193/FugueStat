@@ -1,11 +1,6 @@
 from __future__ import annotations
 import xml.etree.ElementTree as ET
-from collections import defaultdict
-from model.composition import Composition
-from model.note import Note
-from model.tagged.note import TaggedNote
-from model.note_name import NoteName
-from decimal import Decimal
+from functools import reduce
 from typing import List, Dict, TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -23,25 +18,28 @@ class MusicXMLEncoder:
     def from_analysis(self, matches: Dict[int, List[NoteSequence]], write=True) -> str:
         xml_root: ET.Element = ET.parse(self.file_name).getroot()
         measures: List[ET.Element] = xml_root.findall("part/measure")
-        matches_voice_pos: Dict[int, int] = {voice: [0, 0] for voice in matches.keys()}
+        flattened_matches: Dict[int, NoteSequence] = {
+            voice: list(reduce(lambda acc, item: acc + item.notes, matches[voice], list())) for voice in matches
+        }
+        matches_voice_pos: Dict[int, int] = {voice: 0 for voice in matches.keys()}
         file_note_id_pos: Dict[int, int] = {voice: 0 for voice in matches.keys()}
         for measure_element in measures:
             for note_element in measure_element.findall("note"):
                 voice_idx: int = int(note_element.find("voice").text)
                 cur_note_element_id = file_note_id_pos[voice_idx]
-                sequence_idx = matches_voice_pos[voice_idx][0]
-                if sequence_idx >= len(matches[voice_idx]):
+                note_idx = matches_voice_pos[voice_idx]
+                if note_idx >= len(flattened_matches[voice_idx]):
                     file_note_id_pos[voice_idx] += 1
                     continue
-                note_idx = matches_voice_pos[voice_idx][1]
-                cur_matched_note_ids = matches[voice_idx][sequence_idx][note_idx].ids
+                if flattened_matches[voice_idx][note_idx].is_tagged():
+                    cur_matched_note_ids = flattened_matches[voice_idx][note_idx].ids
+                else:
+                    matches_voice_pos[voice_idx] += 1
+                    continue
                 if cur_note_element_id in cur_matched_note_ids:
                     note_element.attrib["color"] = "#FFA500"
                 if cur_note_element_id >= cur_matched_note_ids[-1]:
-                    matches_voice_pos[voice_idx][1] += 1
-                    if note_idx >= len(matches[voice_idx][sequence_idx]) - 1:
-                        matches_voice_pos[voice_idx][0] += 1
-                        matches_voice_pos[voice_idx][1] = 0
+                    matches_voice_pos[voice_idx] += 1
                 file_note_id_pos[voice_idx] += 1
         new_xml_tree = ET.ElementTree(xml_root)
         new_file_name = self.file_name.rstrip(self.FILE_EXTENSION) + self.NEW_FILE_SUFFIX + self.FILE_EXTENSION

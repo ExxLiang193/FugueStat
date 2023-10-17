@@ -65,6 +65,5 @@ class StreamMatcher:
         while cur_stream_pos < len(self.stream) - self.min_match:
             match, cur_stream_pos = self.match_next(pattern, self.stream.next_note_idx(cur_stream_pos))
             if match is not None:
-                pp.pprint(match.notes)
                 results.append(match)
         return results

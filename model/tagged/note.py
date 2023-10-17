@@ -12,7 +12,7 @@ class TaggedNote(Note):
         self.ids: List[int] = ids
 
     def __repr__(self) -> str:
-        return f"{'Rest' if self.is_rest() else 'Note'}({self.position}{{{self.duration}}})@{self.ids}"
+        return f"{'TaggedRest' if self.is_rest() else 'TaggedNote'}({self.position}{{{self.duration}}})@{self.ids}"
 
     @classmethod
     def from_raw(cls, abs_position: Optional[int], raw_duration: Decimal, ids: List[int]) -> Note:
