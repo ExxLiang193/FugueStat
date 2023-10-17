@@ -49,12 +49,11 @@ class DistanceMetrics:
     def insertion_with_expansion(
         self, memo: np.array, x: Iterable, y: Iterable, cur_i: int, cur_j: int, scale: Callable
     ) -> int:
-        return (
-            float("inf")
-            if cur_j < 2
-            else memo[cur_i - 1][cur_j - 2]
-            + scale(self._safe_sub(self._safe_add(y[cur_j - 2], y[cur_j - 1]), x[cur_i - 1]))
-        )
+        if cur_j < 2:
+            return float("inf")
+        if y[cur_j - 2] is None or y[cur_j - 1] is None or x[cur_i - 1] is None:
+            return float("inf")
+        return memo[cur_i - 1][cur_j - 2] + scale(abs((y[cur_j - 2] + y[cur_j - 1]) - x[cur_i - 1]))
 
     def deletion_without_compression(
         self, memo: np.array, x: Iterable, y: Iterable, cur_i: int, cur_j: int, scale: Callable
@@ -64,9 +63,8 @@ class DistanceMetrics:
     def deletion_with_compression(
         self, memo: np.array, x: Iterable, y: Iterable, cur_i: int, cur_j: int, scale: Callable
     ) -> int:
-        return (
-            float("inf")
-            if cur_i < 2
-            else memo[cur_i - 2][cur_j - 1]
-            + scale(self._safe_sub(self._safe_add(x[cur_i - 2], x[cur_i - 1]), y[cur_j - 1]))
-        )
+        if cur_i < 2:
+            return float("inf")
+        if x[cur_i - 2] is None or x[cur_i - 1] is None or y[cur_j - 1] is None:
+            return float("inf")
+        return memo[cur_i - 2][cur_j - 1] + scale(abs((x[cur_i - 2] + x[cur_i - 1]) - y[cur_j - 1]))

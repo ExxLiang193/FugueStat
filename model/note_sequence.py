@@ -28,6 +28,15 @@ class NoteSequence:
 
         return [parse(self.notes[i - 1], self.notes[i]) for i in range(1, len(self.notes))]
 
+    @property
+    def raw_intervals(self) -> List[Optional[int]]:
+        def parse(left_note: Note, right_note: Note) -> Optional[int]:
+            if left_note.is_rest() or right_note.is_rest():
+                return None
+            return (right_note.position - left_note.position).value
+
+        return [parse(self.notes[i - 1], self.notes[i]) for i in range(1, len(self.notes))]
+
     def append_note(self, note: Note) -> None:
         self.notes.append(note)
 

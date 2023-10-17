@@ -1,8 +1,12 @@
 from model.note_sequence import NoteSequence
-from algorithm.kmp_soft import KMPSoft
 from algorithm.adaptive_edit_distance import AdaptiveEditDistance
 from typing import List, Callable, Tuple, Optional
 from algorithm.model.distance_metrics import ScalingFunctions
+from workers.stream_interval_matcher import StreamIntervalMatcher
+
+import pprint
+
+pp = pprint.PrettyPrinter(indent=4)
 
 
 class StreamMatcher:
@@ -11,9 +15,8 @@ class StreamMatcher:
     ) -> None:
         self.stream: NoteSequence = stream
         self.sensitivity: float = sensitivity
-        self.min_match: int = min_match
         self.metrics: List[Callable] = metrics
-        self._kmp_utility = KMPSoft(lps_tolerance)
+        self._stream_interval_matcher = StreamIntervalMatcher(stream.raw_intervals, sensitivity, metrics)
 
     def _extract_intervals(
         self, pattern: NoteSequence, stream_start: int, padding_factor: int
@@ -27,12 +30,12 @@ class StreamMatcher:
         return pattern_intervals, stream_intervals
 
     def _push_forward(self, pattern: NoteSequence, stream_start: int):
-        pattern_intervals, stream_intervals = self._extract_intervals(pattern, stream_start, 2)
+        pattern_intervals, stream_intervals = self._extract_intervals(pattern, stream_start, 1)
 
         backward_edit_distance: AdaptiveEditDistance = AdaptiveEditDistance(
             stream_intervals[::-1], pattern_intervals[::-1], self.metrics, ScalingFunctions.sqrt
         )
-        backward_stream_limit, _ = backward_edit_distance.get_limits()
+        backward_stream_limit, _, _ = backward_edit_distance.get_limits()
         return len(stream_intervals) - backward_stream_limit
 
     def _pull_back(self, pattern: NoteSequence, stream_start: int):
@@ -41,9 +44,11 @@ class StreamMatcher:
         forward_edit_distance: AdaptiveEditDistance = AdaptiveEditDistance(
             stream_intervals, pattern_intervals, self.metrics, ScalingFunctions.sqrt
         )
-        forward_stream_limit, _ = forward_edit_distance.get_limits()
+        forward_stream_limit, _, weight = forward_edit_distance.get_limits()
         if forward_stream_limit == 0:
             return None, len(pattern)
+        if weight > self.sensitivity:
+            return None, forward_stream_limit
         stream_end: int = stream_start + forward_stream_limit + 1
         return NoteSequence(self.stream[stream_start:stream_end]), forward_stream_limit
 
@@ -56,7 +61,7 @@ class StreamMatcher:
     def match_all(self, pattern: NoteSequence) -> List[NoteSequence]:
         results = list()
         cur_stream_pos: int = 0
-        while cur_stream_pos < len(self.stream) - self.min_match:
+        while cur_stream_pos < len(self.stream):
             match, cur_stream_pos = self.match_next(pattern, self.stream.next_note_idx(cur_stream_pos))
             if match is not None:
                 pp.pprint(match.notes)

@@ -23,13 +23,13 @@ class AdaptiveEditDistance:
         S, P = len(self.stream), len(self.pattern)
         memo: np.array = np.zeros((S + 1, P + 1))
         for j in range(1, P + 1):
-            memo[0, j] = abs(self.pattern[j - 1])
+            memo[0, j] = memo[0, j - 1] + abs(self.pattern[j - 1])
         for i in range(1, S + 1):
             for j in range(1, P + 1):
                 memo[i, j] = min(metric(memo, self.stream, self.pattern, i, j, self.scale) for metric in self.metrics)
         return memo
 
-    def get_limits(self) -> Tuple[int, int]:
+    def get_limits(self) -> Tuple[int, int, float]:
         S, P = len(self.stream), len(self.pattern)
         i = S - np.argmin(np.flip(self._memo[:, -1]))
         j = P
@@ -40,4 +40,4 @@ class AdaptiveEditDistance:
                 j -= 1
             else:
                 break
-        return i, j
+        return i, j, self._memo[i, j] / (i + 1)
