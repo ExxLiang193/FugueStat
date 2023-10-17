@@ -15,13 +15,14 @@ class StreamMatcher:
     ) -> None:
         self.stream: NoteSequence = stream
         self.sensitivity: float = sensitivity
+        self.min_match: int = min_match
         self.metrics: List[Callable] = metrics
         self._stream_interval_matcher = StreamIntervalMatcher(stream.raw_intervals, sensitivity, metrics)
 
     def _extract_intervals(
         self, pattern: NoteSequence, stream_start: int, padding_factor: int
     ) -> Tuple[List[int], List[int]]:
-        pattern_intervals: List[int] = [None if interval is None else interval.value for interval in pattern.intervals]
+        pattern_intervals: List[int] = pattern.raw_intervals
         max_stream_intervals: int = min(stream_start + padding_factor * len(pattern_intervals), len(self.stream) - 1)
         stream_intervals: List[int] = [
             None if (interval := self.stream.intervals[i]) is None else interval.value
@@ -61,7 +62,7 @@ class StreamMatcher:
     def match_all(self, pattern: NoteSequence) -> List[NoteSequence]:
         results = list()
         cur_stream_pos: int = 0
-        while cur_stream_pos < len(self.stream):
+        while cur_stream_pos < len(self.stream) - self.min_match:
             match, cur_stream_pos = self.match_next(pattern, self.stream.next_note_idx(cur_stream_pos))
             if match is not None:
                 pp.pprint(match.notes)
