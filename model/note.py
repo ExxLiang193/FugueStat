@@ -13,6 +13,9 @@ class Note:
     def __repr__(self) -> str:
         return f"{'Rest' if self.is_rest() else 'Note'}({self.position}{{{self.duration}}})"
 
+    def __hash__(self) -> int:
+        return hash(repr(self))
+
     @classmethod
     def from_raw(cls, abs_position: Optional[int], raw_duration: Decimal) -> Note:
         return cls(None if abs_position is None else Position(abs_position), Duration(raw_duration))

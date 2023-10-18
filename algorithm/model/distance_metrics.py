@@ -6,12 +6,12 @@ import numpy as np
 
 class ScalingFunctions:
     @classmethod
-    @lru_cache(maxsize=32)
+    @lru_cache(maxsize=64)
     def sqrt(cls, value: int, scale: int = 1) -> float:
         return math.sqrt(scale * value)
 
     @classmethod
-    @lru_cache(maxsize=32)
+    @lru_cache(maxsize=64)
     def floored_sqrt(cls, value: int, scale: int = 1) -> float:
         return math.floor(math.sqrt(scale * value))
 
@@ -21,7 +21,8 @@ class DistanceMetrics:
         self._rest_penalty_factor: int = rest_penalty_factor
         self._inversion_penalty_factor: int = inversion_penalty_factor
 
-    def _safe_sub(self, val_1: float, val_2: float) -> float:
+    @lru_cache(maxsize=128)
+    def _safe_sub(self, val_1: Optional[float], val_2: Optional[float]) -> float:
         match (val_1, val_2):
             case (None, None):
                 return 0.0
@@ -32,9 +33,6 @@ class DistanceMetrics:
             case (_, _):
                 penalty = 1 if (val_1 < 0) == (val_2 < 0) else self._inversion_penalty_factor
                 return penalty * abs(val_1 - val_2)
-
-    def _safe_add(self, val_1: float, val_2: float) -> Optional[float]:
-        return None if val_1 is None or val_2 is None else val_1 + val_2
 
     def replacement_with_penalty(
         self, memo: np.array, x: Iterable, y: Iterable, cur_i: int, cur_j: int, scale: Callable

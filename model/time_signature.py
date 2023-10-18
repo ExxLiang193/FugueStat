@@ -15,4 +15,4 @@ class TimeSignature:
 
     @classmethod
     def from_raw(self, beat_count: int, beat_duration: Decimal) -> TimeSignature:
-        return TimeSignature(beat_count, beat_duration / self.DURATION_SCALE)
+        return TimeSignature(beat_count, self.DURATION_SCALE / beat_duration)
