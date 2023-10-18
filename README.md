@@ -66,6 +66,7 @@ In standard music theory, common tasks include performing manual analysis of fug
 ![WTC1 fugue 1 excerpt 1](images/WTC1_fugue_1_excerpt_1.png)
 
 With increasing complexity, this process becomes much less trivial (yes, that is solo piano):
+
 *Example: "XI. Fuga IV [Dux Tertius]" from Sorabji's Opus Clavicembalisticum*
 ![OC Fuga IV excerpt](images/OC_fuga_4_excerpt.png)
 
@@ -104,3 +105,56 @@ Observe that, unlike typical edit distance, there are two additional cases at th
 ![edit distance costs](images/cost_definitions.png)
 
 Operators and values with an asterisk denote edge case handling for rests in the music where intervals are not applicable (i.e. interval between note and rest does not exist). These edge cases are important and do actually affect the outcome of the matching results. Absolute differences are used to model "distance". Finally, a scaling function $f$ is applied to the absolute difference to level off cost as the difference grows. The function is typically $f(x)=\sqrt{cx}$ for some $c\in\mathbb{N^+}$ to avoid one single large interval deviation from preventing the pattern from matching.
+
+The visual motivation for the definitions of $c_\text{ins+}$ and $c_\text{del+}$ are shown below. "Insertion" and "deletion" are just arbitrary semantics in this case, but the idea for the costs are based off of the observation that the compression of the intervals as a result of the added note should sum up to remain constant as before.
+
+![insertion deletion explanation](images/insertion_deletion_explanation.jpeg)
+
+Finally, the last step in this lower-level part of the algorithm is to retrieve the entry in the matrix with the lowest edit distance while maximizing match length. This is done slightly differently than normal, and is instead done by first computing the *highest* index entry of the lowest edit distance value of the *last* column of the matrix. The last column represents the substring edit distance between each of `stream[:1]`, `stream[:2]`, ..., `stream[:S]` and `pattern`. In more concise terms, the starting match index is:
+
+```python
+(i, j) := (S - np.argmin(np.flip(memo[:, -1])), P)
+```
+
+However, notice that this initial pair of indices forces the entire pattern to be matched, which isn't always the case since a partial subject match is also possible. Thus, if the adjacent indices listed below (top and left) contain a _strictly_ smaller $E$ value, then move `(i, j)` to that new position. Rince and repeat until the position is stable. It must be *strictly* smaller as an equal value doesn't optimize to a maximum number of stream and pattern values. The final value of `(i, j)` is used as `s[:i]` and `p[:j]` and is the ***right-truncated*** substring match of *pattern* for *stream*. This is not the optimal answer, but the next section will cover how to get it.
+
+![limits computation](images/optimal_limits.png)
+
+### Window propagation
+
+As concluded at the end of the previous section, the modified edit distance algorithm computes the *right-truncated* substring match of *pattern* for *stream*. Let us denote this by $M(s,p)$.
+
+This next step kills two birds with one stone. With the initial inspiration being the *Knuth-Morris-Pratt* (KMP) algorithm, which is one of the most widely implemented practical hard (vs. soft) string matching algorithms, this step can effectively replace a usage of KMP for efficient window propagation.
+
+There are 5 orientations for how an ideal pattern match can manifest in a stream. A 6th orientation where the ideal match is cut off on the left side is not applicable, but it'll be clearer why that is the case later.
+
+![possible match locations](images/possible_match_locations.png)
+
+Because the $M(s,p)$ substring match of *stream* and *pattern* is *right-truncated*, it does not offer the ideal match for case $2, 3, \text{and } 4$. The solution is then to perform a *left-truncated* substring match of *stream* and *pattern* first and then proceed it by a *right-truncated* version. The *left-truncated* version is achieved simply by reversing the *stream* and *pattern*. The pseudocode is below:
+
+```python
+(r_s, r_p) = (s.reversed(), p.reversed())
+(r_i, r_j) = M(r_s, r_p);
+(s', p') = (r_s[:r_i].reversed(), r_p[:r_j].reversed())
+(i', j') = M(s', p')
+```
+
+And, voilà, `s'[:i']` is the optimal substring match for `p'[:j']`. The irrelevant fluff was first stripped from the left and then the other irrelevant fluff was stripped from the right.
+
+How about window propagation? The key to the solution is the fact that a *left-truncated* substring match was performed first. This procedure can serve both to *left-truncate* and to *propagate to the right*. It also serves to left-align the ideal match so the left side of the match isn't cut off by the progressing stream.
+
+The *left-truncation* algorithm can be repeatedly applied starting at any state $2, 3, 4, \text{or } 5$ until it reaches state $1$, where the *right-truncation* algorithm finishes things off. In code, this is simply checked by verifying that the offset produced by the *left-truncation* to be $0$.
+
+![window propagation](images/window_propagation.png)
+
+And, thus, all the optimal matches are found. The only caveats to this implementation is that after state $1$ completes, the starting position of the stream window is moved forward the length of the match, and after state $5$ completes, only $P$ steps are taken forward, not $2P$.
+
+## Time complexity
+
+Each window matching iteration is $O(SP) = O(2P * P) = O(P^2)$ due to the computation of edit distance.
+
+Each window matching limit searching iteration is $O(S + P)$.
+
+Each *left-truncation* operation is proceeded by at most one *right-truncation* operation. Let $L$ be the *voice* with the maximum number of notes. Then, the number of window propagation operations is $O\left(\frac{L}{P}\right)$.
+
+So, the total time complexity is $O\left(\frac{L}{P}*S*P\right) = O\left(\frac{L}{P}*P^2\right) = O(LP)$.
