@@ -165,3 +165,11 @@ Each window matching limit searching iteration is $O(S + P)$.
 Each *left-truncation* operation is proceeded by at most one *right-truncation* operation. Let $L$ be the *voice* with the maximum number of notes. Then, the number of window propagation operations is $O\left(\frac{L}{P}\right)$.
 
 So, the total time complexity is $O\left( \frac{L}{P} * S * P \right) = O\left( \frac{L}{P} * P^2 \right) = O(LP)$.
+
+## TO-DO List
+
+- [ ] Automated intelligent voice joining$^1$
+- [ ] Subject transformation detection
+- [ ] Note duration inclusion in edit distance
+
+$^1$ Mainly because of human score design, at some points, the voice assignment of a relatively continuous stream of notes changes even though it shouldn't. This can cut a subject into pieces across various voices which causes detection to fail. Therefore, at such cut boundaries, try as best as possible to rejoin the pieces.
