@@ -15,8 +15,15 @@ Libraries: **pyyaml**, **numpy**, **pytest**
 ## Usage
 
 ```bash
-python3 -m main.py <path-to-musicxml-file>
+python3 main.py <file_name>.<file_extension>
 ```
+
+Resulting file is found at `<file_name>_annotated.<file_extension>`.
+
+## File import and export
+
+The current supported file reading and writing formats are:
+- *.musicxml*
 
 ## Terminology
 **Fugue**: A contrapuntal composition in which a short melody or phrase (the subject) is introduced by one part and successively taken up by others and developed by interweaving the parts.

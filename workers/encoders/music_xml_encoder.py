@@ -2,6 +2,7 @@ from __future__ import annotations
 import xml.etree.ElementTree as ET
 from functools import reduce
 from typing import List, Dict, TYPE_CHECKING
+from utility.colour_generator import ColourGenerator
 
 if TYPE_CHECKING:
     from model.note_sequence import NoteSequence
@@ -23,6 +24,7 @@ class MusicXMLEncoder:
         }
         matches_voice_pos: Dict[int, int] = {voice: 0 for voice in matches.keys()}
         file_note_id_pos: Dict[int, int] = {voice: 0 for voice in matches.keys()}
+        highlight_colour: str = ColourGenerator.get_new_colour()
         for measure_element in measures:
             for note_element in measure_element.findall("note"):
                 voice_idx: int = int(note_element.find("voice").text)
@@ -37,7 +39,7 @@ class MusicXMLEncoder:
                     matches_voice_pos[voice_idx] += 1
                     continue
                 if cur_note_element_id in cur_matched_note_ids:
-                    note_element.attrib["color"] = "#FFA500"
+                    note_element.attrib["color"] = highlight_colour
                 if cur_note_element_id >= cur_matched_note_ids[-1]:
                     matches_voice_pos[voice_idx] += 1
                 file_note_id_pos[voice_idx] += 1
