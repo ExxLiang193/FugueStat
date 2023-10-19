@@ -164,4 +164,4 @@ Each window matching limit searching iteration is $O(S + P)$.
 
 Each *left-truncation* operation is proceeded by at most one *right-truncation* operation. Let $L$ be the *voice* with the maximum number of notes. Then, the number of window propagation operations is $O\left(\frac{L}{P}\right)$.
 
-So, the total time complexity is $O\left(\frac{L}{P}*S*P\right) = O\left(\frac{L}{P}*P^2\right) = O(LP)$.
+So, the total time complexity is $O\left( \frac{L}{P} * S * P \right) = O\left( \frac{L}{P} * P^2 \right) = O(LP)$.
