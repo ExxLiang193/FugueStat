@@ -168,7 +168,7 @@ So, the total time complexity is $O\left( \frac{L}{P} * S * P \right) = O\left( 
 
 ## TO-DO List
 
-- [ ] Automated intelligent voice joining$^1$
+- [ ] Automated intelligent voice joining $^1$
 - [ ] Subject transformation detection
 - [ ] Note duration inclusion in edit distance
 
