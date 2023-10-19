@@ -15,7 +15,7 @@ Libraries: **pyyaml**, **numpy**, **pytest**
 ## Usage
 
 ```bash
-python3 main.py <file_name>.<file_extension>
+python3 main.py <file_name>.<file_extension> [--debug] [--logfile=log.txt]
 ```
 
 Resulting file is found at `<file_name>_annotated.<file_extension>`.

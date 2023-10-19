@@ -22,10 +22,10 @@ def enable_safe_float_handling():
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Generates statistics for fugue")
-    parser.add_argument("filename", type=str)
-    parser.add_argument("--logfile", type=str, default="log.txt")
-    parser.add_argument("--debug", action="store_true")
+    parser = argparse.ArgumentParser(description="Generates statistics and annotations for musical fugue.")
+    parser.add_argument("filename", type=str, help="Path to music file to be ingested for analysis.")
+    parser.add_argument("--logfile", type=str, default="log.txt", help="Path to log file for stdout and stderr.")
+    parser.add_argument("--debug", action="store_true", help="Toggle debug mode for logging.")
     return parser.parse_args()
 
 
