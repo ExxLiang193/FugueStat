@@ -20,6 +20,17 @@ python3 main.py <file_name>.<file_extension> [--debug] [--logfile=log.txt]
 
 Resulting file is found at `<file_name>_annotated.<file_extension>`.
 
+## Prerequisites (temporary)
+
+- [x] Music file should only contain _1 single_ fugue $^1$
+- [x] No voice discontinuities should occur where a stream of notes is intuitively continuous within a single voice $^2$
+- [x] Fugue should begin with a single solo voice stating the subject
+- [x] A time signature is required for all measures
+
+$^1$ This condition can be relaxed in the future by requiring titles of fugal sections to contain certain keywords.
+
+$^2$ Mentioned in [TO-DO List](#to-do-list), some alleviation will be provided through intelligent voice joining, but try best to avoid this issue.
+
 ## File import and export
 
 The current supported file reading and writing formats are:
@@ -171,5 +182,7 @@ So, the total time complexity is $O\left( \frac{L}{P} * S * P \right) = O\left( 
 - [ ] Automated intelligent voice joining $^1$
 - [ ] Subject transformation detection
 - [ ] Note duration inclusion in edit distance
+- [ ] Remove need for time signature
+- [ ] Fugue detection with score through keyword title matching
 
 $^1$ Mainly because of human score design, at some points, the voice assignment of a relatively continuous stream of notes changes even though it shouldn't. This can cut a subject into pieces across various voices which causes detection to fail. Therefore, at such cut boundaries, try as best as possible to rejoin the pieces.
