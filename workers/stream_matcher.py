@@ -59,7 +59,7 @@ class StreamMatcher:
             logger.debug("NOT FOUND")
             logger.debug(f"--> {len(pattern)}")
             return None, len(pattern)
-        if weight > self.sensitivity or forward_stream_limit + 1 < self.min_match:
+        if (weight > self.sensitivity) or (forward_stream_limit + 1 < self.min_match):
             logger.debug("SKIPPED")
             logger.debug(f"--> {forward_stream_limit}")
             return None, forward_stream_limit
@@ -79,7 +79,7 @@ class StreamMatcher:
         results = list()
         cur_stream_pos: int = 0
         while cur_stream_pos < len(self.stream) - self.min_match:
-            match, cur_stream_pos = self.match_next(pattern, self.stream.next_note_idx(cur_stream_pos))
+            match, cur_stream_pos = self.match_next(pattern, cur_stream_pos)
             if match is not None:
                 results.append(match)
         return results

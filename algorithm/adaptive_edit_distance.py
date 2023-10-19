@@ -25,7 +25,7 @@ class AdaptiveEditDistance:
         S, P = len(self.stream), len(self.pattern)
         memo: np.array = np.zeros((S + 1, P + 1))
         for j in range(1, P + 1):
-            memo[0, j] = memo[0, j - 1] + abs(self.pattern[j - 1])
+            memo[0, j] = memo[0, j - 1] + abs(self.pattern[j - 1] or 0.0)
         for i in range(1, S + 1):
             for j in range(1, P + 1):
                 memo[i, j] = min(metric(memo, self.stream, self.pattern, i, j, self.scale) for metric in self.metrics)

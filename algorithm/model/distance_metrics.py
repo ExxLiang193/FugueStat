@@ -33,7 +33,7 @@ class DistanceMetrics:
                 return self._rest_penalty_factor * abs(val_1)
             case (_, _):
                 penalty = 1 if (val_1 < 0) == (val_2 < 0) else self._inversion_penalty_factor
-                return penalty * abs(val_1 - val_2)
+                return penalty * max(0, abs(val_1 - val_2) - 1)
 
     def replacement_with_penalty(
         self, memo: np.array, x: Iterable, y: Iterable, cur_i: int, cur_j: int, scale: Callable
@@ -43,7 +43,7 @@ class DistanceMetrics:
     def insertion_without_expansion(
         self, memo: np.array, x: Iterable, y: Iterable, cur_i: int, cur_j: int, scale: Callable
     ) -> int:
-        return float("inf") if y[cur_j - 1] is None else memo[cur_i][cur_j - 1] + scale(abs(y[cur_j - 1] or 0.0))
+        return float("inf") if y[cur_j - 1] is None else memo[cur_i][cur_j - 1] + scale(abs(y[cur_j - 1]))
 
     def insertion_with_expansion(
         self, memo: np.array, x: Iterable, y: Iterable, cur_i: int, cur_j: int, scale: Callable
@@ -57,7 +57,7 @@ class DistanceMetrics:
     def deletion_without_compression(
         self, memo: np.array, x: Iterable, y: Iterable, cur_i: int, cur_j: int, scale: Callable
     ) -> int:
-        return float("inf") if x[cur_i - 1] is None else memo[cur_i - 1][cur_j] + scale(abs(x[cur_i - 1] or 0.0))
+        return float("inf") if x[cur_i - 1] is None else memo[cur_i - 1][cur_j] + scale(abs(x[cur_i - 1]))
 
     def deletion_with_compression(
         self, memo: np.array, x: Iterable, y: Iterable, cur_i: int, cur_j: int, scale: Callable
