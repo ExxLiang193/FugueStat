@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from model.constants import OCTAVE_SUBDIVISIONS
 from model.interval import Interval
 

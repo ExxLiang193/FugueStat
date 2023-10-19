@@ -1,6 +1,7 @@
-import numpy as np
-from typing import List, Generator
 import colorsys
+from typing import Generator, List
+
+import numpy as np
 
 
 class ColourGenerator:
@@ -17,7 +18,7 @@ class ColourGenerator:
             lightness: float = (50 + np.random.rand() * 10) / 100.0
             saturation: float = (90 + np.random.rand() * 10) / 100.0
             r, g, b = colorsys.hls_to_rgb(hue, lightness, saturation)
-            yield f"#{int(r * 256):02x}{int(g * 256):02x}{int(b * 256):02x}".upper()
+            yield f"#{int(r * 256):02X}{int(g * 256):02X}{int(b * 256):02X}"
 
     @staticmethod
     def get_new_colour() -> str:

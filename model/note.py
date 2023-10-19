@@ -1,8 +1,10 @@
 from __future__ import annotations
-from model.duration import Duration
-from model.position import Position
+
 from decimal import Decimal
 from typing import Optional
+
+from model.duration import Duration
+from model.position import Position
 
 
 class Note:

@@ -1,7 +1,9 @@
 from __future__ import annotations
+
 from decimal import Decimal
-from model.constants import RawDuration
 from typing import List
+
+from model.constants import RawDuration
 
 
 class Duration:

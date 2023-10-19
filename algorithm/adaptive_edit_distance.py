@@ -1,8 +1,10 @@
-from typing import List, Callable, Tuple
-import numpy as np
-from collections import namedtuple
+import logging
+import os
+from typing import Callable, List, Tuple
 
-RankInfo = namedtuple("RankInfo", ("offset", "normalized_distance"))
+import numpy as np
+
+logger = logging.getLogger(os.path.basename(__file__))
 
 
 class AdaptiveEditDistance:
@@ -29,14 +31,17 @@ class AdaptiveEditDistance:
                 memo[i, j] = min(metric(memo, self.stream, self.pattern, i, j, self.scale) for metric in self.metrics)
         return memo
 
-    def get_limits(self) -> Tuple[int, int, float]:
+    def get_limits(self, pattern_complete=False) -> Tuple[int, int, float]:
         S, P = len(self.stream), len(self.pattern)
         i = S - np.argmin(np.flip(self._memo[:, -1]))
         j = P
+        logger.debug(f"\n{self._memo}")
         while i > 0 and j > 0:
             if self._memo[i - 1][j] < self._memo[i][j]:
                 i -= 1
             elif self._memo[i][j - 1] < self._memo[i][j]:
+                if pattern_complete:
+                    break
                 j -= 1
             else:
                 break

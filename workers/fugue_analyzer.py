@@ -1,10 +1,15 @@
+import logging
+import os
+from typing import Dict, List, Tuple
+
+from algorithm.model.distance_metrics import DistanceMetrics
 from algorithm.model.skip_sequence import SkipSequence
 from model.composition import Composition
-from model.note_sequence import NoteSequence
 from model.exceptions import InvalidFugueFormError
-from typing import Tuple, List, Dict
+from model.note_sequence import NoteSequence
 from workers.stream_matcher import StreamMatcher
-from algorithm.model.distance_metrics import DistanceMetrics
+
+logger = logging.getLogger(os.path.basename(__file__))
 
 
 class FugueAnalyzer:
@@ -39,6 +44,7 @@ class FugueAnalyzer:
         return subject
 
     def match_subject(self, subject: NoteSequence) -> Dict[int, List[NoteSequence]]:
+        logger.debug(f"SUBJECT: {subject.raw_intervals}")
         distance_metrics: DistanceMetrics = DistanceMetrics(rest_penalty_factor=5, inversion_penalty_factor=2)
         metrics = [
             distance_metrics.replacement_with_penalty,
@@ -50,9 +56,7 @@ class FugueAnalyzer:
         all_results = dict()
         for voice in self.skip_sequence.voices.keys():
             stream = self.skip_sequence.voices[voice]
+            logger.debug(f"VOICE START: {voice}")
             stream_matcher = StreamMatcher(stream, 1, self.sensitivity, self.min_match, metrics)
-            result = stream_matcher.match_all(subject)
-            for sequence in result:
-                sequence.lstrip_rests()
-            all_results[voice] = result
+            all_results[voice] = stream_matcher.match_all(subject)
         return all_results

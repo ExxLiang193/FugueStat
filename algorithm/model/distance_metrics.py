@@ -1,6 +1,7 @@
-from typing import Iterable, Callable, Optional
-from functools import lru_cache
 import math
+from functools import lru_cache
+from typing import Callable, Iterable, Optional
+
 import numpy as np
 
 
@@ -42,7 +43,7 @@ class DistanceMetrics:
     def insertion_without_expansion(
         self, memo: np.array, x: Iterable, y: Iterable, cur_i: int, cur_j: int, scale: Callable
     ) -> int:
-        return memo[cur_i][cur_j - 1] + scale(abs(y[cur_j - 1] or 0.0))
+        return float("inf") if y[cur_j - 1] is None else memo[cur_i][cur_j - 1] + scale(abs(y[cur_j - 1] or 0.0))
 
     def insertion_with_expansion(
         self, memo: np.array, x: Iterable, y: Iterable, cur_i: int, cur_j: int, scale: Callable
@@ -56,7 +57,7 @@ class DistanceMetrics:
     def deletion_without_compression(
         self, memo: np.array, x: Iterable, y: Iterable, cur_i: int, cur_j: int, scale: Callable
     ) -> int:
-        return memo[cur_i - 1][cur_j] + scale(abs(x[cur_i - 1] or 0.0))
+        return float("inf") if x[cur_i - 1] is None else memo[cur_i - 1][cur_j] + scale(abs(x[cur_i - 1] or 0.0))
 
     def deletion_with_compression(
         self, memo: np.array, x: Iterable, y: Iterable, cur_i: int, cur_j: int, scale: Callable

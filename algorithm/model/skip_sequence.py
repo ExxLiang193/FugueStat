@@ -1,12 +1,13 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, List, Dict, Iterable
+
+import pprint
 from decimal import Decimal
 from itertools import accumulate, chain
-import pprint
+from typing import TYPE_CHECKING, Dict, Iterable, List, Tuple
 
 if TYPE_CHECKING:
-    from model.note_sequence import NoteSequence
     from model.note import Note
+    from model.note_sequence import NoteSequence
 
 
 class SkipNode:
@@ -28,6 +29,16 @@ class SkipSequence:
 
     def __repr__(self) -> str:
         return pprint.pformat([(f"#{i}", voices) for i, voices in enumerate(self.head)], indent=4)
+
+    def _auto_join(self, skip_seq: List[Dict[int, SkipNode]]) -> List[Dict[int, SkipNode]]:
+        most_recent_notes: Dict[int, SkipNode] = {voice: node for voice, node in skip_seq[0].items()}
+        for i in range(1, len(skip_seq)):
+            # detached_voices =
+            for voice, node in skip_seq[i].items():
+                if most_recent_notes[voice].next_idx != i:
+                    continue
+                if skip_seq[i][voice].note.is_rest() != most_recent_notes[voice].note.is_rest():
+                    pass
 
     def _parse_sequences(self, voices: Dict[int, NoteSequence]) -> List[Dict[int, SkipNode]]:
         for voice in voices.values():

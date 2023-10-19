@@ -1,12 +1,14 @@
-from model.note_sequence import NoteSequence
+import logging
+import os
+from typing import Callable, List, Optional, Tuple
+
 from algorithm.adaptive_edit_distance import AdaptiveEditDistance
-from typing import List, Callable, Tuple, Optional
 from algorithm.model.distance_metrics import ScalingFunctions
+from model.note_sequence import NoteSequence
+from utility.string_format import format_array
 from workers.stream_interval_matcher import StreamIntervalMatcher
 
-import pprint
-
-pp = pprint.PrettyPrinter(indent=4)
+logger = logging.getLogger(os.path.basename(__file__))
 
 
 class StreamMatcher:
@@ -31,27 +33,41 @@ class StreamMatcher:
         return pattern_intervals, stream_intervals
 
     def _push_forward(self, pattern: NoteSequence, stream_start: int):
-        pattern_intervals, stream_intervals = self._extract_intervals(pattern, stream_start, 1)
+        pattern_intervals, stream_intervals = self._extract_intervals(pattern, stream_start, 2)
+        logger.debug("")
+        logger.debug(f"FORWARD: {format_array(stream_intervals)}")
+        logger.debug(f"PATTERN: {format_array(pattern.raw_intervals)}")
 
         backward_edit_distance: AdaptiveEditDistance = AdaptiveEditDistance(
             stream_intervals[::-1], pattern_intervals[::-1], self.metrics, ScalingFunctions.sqrt
         )
-        backward_stream_limit, _, _ = backward_edit_distance.get_limits()
+        backward_stream_limit, _, _ = backward_edit_distance.get_limits(pattern_complete=True)
+        logger.debug(f"--> {len(stream_intervals) - backward_stream_limit}")
         return len(stream_intervals) - backward_stream_limit
 
     def _pull_back(self, pattern: NoteSequence, stream_start: int):
         pattern_intervals, stream_intervals = self._extract_intervals(pattern, stream_start, 2)
+        logger.debug(f"BACKWARD: {format_array(stream_intervals)}")
+        logger.debug(f"PATTERN : {format_array(pattern.raw_intervals)}")
 
         forward_edit_distance: AdaptiveEditDistance = AdaptiveEditDistance(
             stream_intervals, pattern_intervals, self.metrics, ScalingFunctions.sqrt
         )
         forward_stream_limit, _, weight = forward_edit_distance.get_limits()
+        logger.debug(f"MATCH WEIGHT: {weight}")
         if forward_stream_limit == 0:
+            logger.debug("NOT FOUND")
+            logger.debug(f"--> {len(pattern)}")
             return None, len(pattern)
-        if weight > self.sensitivity:
+        if weight > self.sensitivity or forward_stream_limit + 1 < self.min_match:
+            logger.debug("SKIPPED")
+            logger.debug(f"--> {forward_stream_limit}")
             return None, forward_stream_limit
         stream_end: int = stream_start + forward_stream_limit + 1
-        return NoteSequence(self.stream[stream_start:stream_end]), forward_stream_limit
+        match_sequence: NoteSequence = NoteSequence(self.stream[stream_start:stream_end])
+        logger.debug(f"MATCHED: {match_sequence.raw_intervals}")
+        logger.debug(f"--> {forward_stream_limit}")
+        return match_sequence, forward_stream_limit
 
     def match_next(self, pattern: NoteSequence, stream_start: int) -> Tuple[Optional[NoteSequence], int]:
         while (step := self._push_forward(pattern, stream_start)) and step > 0:

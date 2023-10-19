@@ -7,7 +7,7 @@ Perform visual music-based fugal analysis using subjects, countersubjects, and t
 Requires: **python-3.10+**
 
 ```bash
-python3 -m pip install -r requirements.txt
+pip install -r requirements.txt
 ```
 
 Libraries: **pyyaml**, **numpy**, **pytest**

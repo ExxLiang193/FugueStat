@@ -1,5 +1,6 @@
+from typing import Callable, List, Tuple
+
 from algorithm.adaptive_edit_distance import AdaptiveEditDistance
-from typing import List, Callable, Tuple
 from algorithm.model.distance_metrics import ScalingFunctions
 
 
