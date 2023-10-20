@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import Callable, List, Optional, Tuple
+from typing import Callable, List, Optional, Set, Tuple
 
 from model.constants import Transformation
 from model.note_sequence import NoteSequence
@@ -16,7 +16,7 @@ class StreamMatcher:
         self.min_match: int = min_match
         self._metrics: List[Callable] = metrics
 
-    def _push_forward(self, pattern: NoteSequence, transformations: List[Transformation], stream_start: int) -> int:
+    def _push_forward(self, pattern: NoteSequence, transformations: Set[Transformation], stream_start: int) -> int:
         transformation_matcher: TransformationMatcher = TransformationMatcher(
             self.stream, pattern, transformations, self._metrics
         )
@@ -24,7 +24,7 @@ class StreamMatcher:
         return stream_step
 
     def _pull_back(
-        self, pattern: NoteSequence, transformations: List[Transformation], stream_start: int
+        self, pattern: NoteSequence, transformations: Set[Transformation], stream_start: int
     ) -> Tuple[int, NoteSequence, Transformation]:
         transformation_matcher: TransformationMatcher = TransformationMatcher(
             self.stream, pattern, transformations, self._metrics
@@ -47,7 +47,7 @@ class StreamMatcher:
         return stream_step + 1, match_sequence, transformation
 
     def match_next(
-        self, pattern: NoteSequence, transformations: List[Transformation], stream_start: int
+        self, pattern: NoteSequence, transformations: Set[Transformation], stream_start: int
     ) -> Tuple[Optional[NoteSequence], Optional[Transformation], int]:
         while (step := self._push_forward(pattern, transformations, stream_start)) and step > 0:
             stream_start += step
@@ -55,7 +55,7 @@ class StreamMatcher:
         return match, transformation, stream_start + step
 
     def match_all(
-        self, pattern: NoteSequence, transformations: List[Transformation]
+        self, pattern: NoteSequence, transformations: Set[Transformation]
     ) -> List[Tuple[NoteSequence, Transformation]]:
         results = list()
         cur_stream_pos: int = 0

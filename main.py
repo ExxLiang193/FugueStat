@@ -5,14 +5,14 @@ import logging
 import os
 from decimal import FloatOperation, getcontext
 from time import time
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Set
 
 import numpy as np
 
 from config import get_config
 from model.constants import Transformation
 from model.note_sequence import NoteSequence
-from workers.encoders.music_xml_encoder import MusicXMLEncoder
+from workers.encoders.musicxml.musicxml_encoder import MusicXMLEncoder
 from workers.fugue_analyzer import FugueAnalyzer
 from workers.parsers.musicxml.musicxml_parser import MusicXMLParser
 
@@ -32,10 +32,16 @@ def configure_logging(args):
     return logging.getLogger(os.path.basename(__file__))
 
 
-def get_transformations(args) -> List[Transformation]:
-    transformations: List[Transformation] = [Transformation.DEFAULT]
+def get_transformations(args) -> Set[Transformation]:
+    transformations: Set[Transformation] = {Transformation.DEFAULT}
     if args.inversion:
-        transformations.append(Transformation.INVERSION)
+        transformations.add(Transformation.INVERSION)
+    if args.reversal:
+        transformations.add(Transformation.REVERSAL)
+    if args.reversal_inversion:
+        transformations.add(Transformation.REVERSAL_INVERSION)
+    if args.all:
+        transformations |= {Transformation.INVERSION, Transformation.REVERSAL, Transformation.REVERSAL_INVERSION}
     return transformations
 
 
@@ -45,6 +51,11 @@ def parse_args():
     parser.add_argument("--logfile", type=str, default="log.txt", help="Path to log file for stdout and stderr.")
     parser.add_argument("--debug", action="store_true", help="Toggle debug mode for logging.")
     parser.add_argument("--inversion", action="store_true", help="Enable subject inversion detection.")
+    parser.add_argument("--reversal", action="store_true", help="Enable subject reversal detection.")
+    parser.add_argument(
+        "--reversal-inversion", action="store_true", help="Enable subject reversal-inversion detection."
+    )
+    parser.add_argument("--all", action="store_true", help="Enable all subject transformation detection.")
     return parser.parse_args()
 
 

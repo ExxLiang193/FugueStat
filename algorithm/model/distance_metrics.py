@@ -20,7 +20,7 @@ class ScalingFunctions:
 class DistanceMetrics:
     REPLACEMENT_TOLERANCE = 1
     INSERTION_PENALTY = 0
-    DELETION_PENALTY = 1
+    DELETION_PENALTY = 0
 
     def __init__(self, rest_penalty_factor: int = 10, inversion_penalty_factor: int = 2) -> None:
         self._rest_penalty_factor: int = rest_penalty_factor

@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import Callable, List, Optional, Tuple
+from typing import Callable, List, Optional, Set, Tuple
 
 from algorithm.adaptive_edit_distance import AdaptiveEditDistance
 from algorithm.model.distance_metrics import ScalingFunctions
@@ -17,12 +17,12 @@ class TransformationMatcher:
         self,
         stream: NoteSequence,
         pattern: NoteSequence,
-        transformations: List[Transformation],
+        transformations: Set[Transformation],
         metrics: List[Callable],
     ) -> None:
         self.stream: NoteSequence = stream
         self.pattern: NoteSequence = pattern
-        self._transformations: List[Transformation] = transformations
+        self._transformations: Set[Transformation] = transformations
         self._metrics: List[Callable] = metrics
 
     def _extract_intervals(self, stream_start: int, padding_factor: float) -> Tuple[List[int], List[int]]:

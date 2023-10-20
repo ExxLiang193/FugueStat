@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 import os
-from typing import TYPE_CHECKING, Dict, List, Tuple
+from typing import TYPE_CHECKING, Dict, List, Tuple, Set
 
 from algorithm.model.distance_metrics import DistanceMetrics
 from algorithm.model.skip_sequence import SkipSequence
@@ -49,10 +49,10 @@ class FugueAnalyzer:
         return subject
 
     def match_subject(
-        self, subject: NoteSequence, transformations: List[Transformation]
+        self, subject: NoteSequence, transformations: Set[Transformation]
     ) -> Dict[int, List[Tuple[NoteSequence, Transformation]]]:
         logger.debug(f"SUBJECT: {subject.raw_intervals}")
-        distance_metrics: DistanceMetrics = DistanceMetrics(rest_penalty_factor=5, inversion_penalty_factor=5)
+        distance_metrics: DistanceMetrics = DistanceMetrics(rest_penalty_factor=5, inversion_penalty_factor=2)
         metrics = [
             distance_metrics.replacement_with_penalty,
             distance_metrics.insertion_without_expansion,

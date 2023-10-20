@@ -19,6 +19,8 @@ python3 main.py <file_name>.<file_extension> [--inversion] [--debug] [--logfile=
 ```
 
 - `--inversion` should be set for inverted subject to be matched.
+- `--reversal` should be set for reversed subject to be matched.
+- `--reversal-inversion` should be set for reversed-inverted subject to be matched.
 - `--debug` should be set for debug logging to be transmitted to `--logfile`.
 - `--logfile` should be set to the location of the log file to write to.
 - `--help` displays the same such descriptions.
@@ -186,12 +188,14 @@ So, the total time complexity is $O\left( \frac{L}{P} * S * P \right) = O\left( 
 
 - [ ] Automated intelligent voice joining $^1$
 - [ ] Subject transformation detection
-  - [ ] Reversal
+  - [x] Default
+  - [x] Reversal
   - [x] Inversion
-  - [ ] Reversal-Inversion
+  - [x] Reversal-Inversion
   - [ ] Augmentation
   - [ ] Diminution
 - [ ] Note duration inclusion in edit distance
+- [ ] Chord handling
 - [ ] Remove need for time signature
 - [ ] Fugue detection with score through keyword title matching
 
