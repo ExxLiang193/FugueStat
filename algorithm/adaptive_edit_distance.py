@@ -31,7 +31,7 @@ class AdaptiveEditDistance:
                 memo[i, j] = min(metric(memo, self.stream, self.pattern, i, j, self.scale) for metric in self.metrics)
         return memo
 
-    def get_limits(self, pattern_complete=False) -> Tuple[int, int, float]:
+    def get_limits(self, pattern_complete=False) -> Tuple[int, float]:
         S, P = len(self.stream), len(self.pattern)
         i = S - np.argmin(np.flip(self._memo[:, -1]))
         j = P
@@ -45,4 +45,4 @@ class AdaptiveEditDistance:
                 j -= 1
             else:
                 break
-        return i, j, self._memo[i, j] / (i + 1)
+        return i, self._memo[i, j] / (i + 1)

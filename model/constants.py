@@ -37,3 +37,13 @@ class BaseNoteName:
     E = "E"
     F = "F"
     G = "G"
+
+
+@dataclass(frozen=True)
+class Transformation:
+    DEFAULT = "DEFAULT"
+    REVERSAL = "REVERSAL"
+    INVERSION = "INVERSION"
+    REVERSAL_INVERSION = "REVERSAL_INVERSION"
+    AUGMENTATION = "AUGMENTATION"
+    DIMINUTION = "DIMINUTION"

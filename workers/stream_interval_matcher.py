@@ -24,7 +24,7 @@ class StreamIntervalMatcher:
         backward_edit_distance: AdaptiveEditDistance = AdaptiveEditDistance(
             stream_intervals[::-1], pattern_intervals[::-1], self.metrics, ScalingFunctions.sqrt
         )
-        backward_stream_limit, _, _ = backward_edit_distance.get_limits()
+        backward_stream_limit, _ = backward_edit_distance.get_limits()
         return len(stream_intervals) - backward_stream_limit
 
     def _pull_back(self, pattern_intervals: List[int], stream_start: int) -> Tuple[bool, int]:
@@ -33,7 +33,7 @@ class StreamIntervalMatcher:
         forward_edit_distance: AdaptiveEditDistance = AdaptiveEditDistance(
             stream_intervals, pattern_intervals, self.metrics, ScalingFunctions.sqrt
         )
-        forward_stream_limit, _, weight = forward_edit_distance.get_limits()
+        forward_stream_limit, weight = forward_edit_distance.get_limits()
         if forward_stream_limit == 0:
             return False, len(pattern_intervals) + 1
         if weight > self.sensitivity:

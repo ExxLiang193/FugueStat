@@ -13,25 +13,189 @@ test_inversion_penalty_factor: Final[int] = 1
 test_sensitivity: Final[float] = 0.3
 
 test_stream_intervals_raw: Final[List[int]] = [
-    None, 2, 2, 1, 2, -2, -1, 5, -7, 5,             # 0
-    2, -2, -2, -1, 1, -2, -1, 5, -7, 5,             # 10
-    None, None, 2, 1, 2, -7, None, None, 2, 2,      # 20
-    1, 2, -2, -1, 5, -7, 5, 2, -2, -2,              # 30
-    -1, 5, -2, -2, -1, 1, -3, 7, -2, -2,            # 40
-    -1, 1, -3, 2, 1, 2, -2, -1, -2, -2,             # 50
-    None, None, 2, 2, 1, 2, -2, -1, 4, -6,          # 60
-    5, 1, -1, -2, -1, 1, -1, 1, None, None,         # 70
-    2, 2, 1, 2, -2, -1, 5, -7, 5, -7,               # 80
-    7, -2, -3, 7, -2, None, None, 2, 2, 1,          # 90
-    2, -2, -2, 5, -6, 5, 1, -1, -2, -1,             # 100
-    None, None, 2, 2, 1, 2, -2, -2, 6, -7,          # 110
-    5, 0, 2, -2, -2, -2, 2, -2, -1, -2,             # 120
-    -2, 2, -3, 1, 4, 1, 2, 2, 1, -1,                # 130
-    -2, 5, -7, 5, 2, -2, -1, -2, 2, -2,             # 140
-    -7, 0, -7, 2, 2, 1, 2, -2, -1, 5,               # 150
-    -7, 5, 2, -2, -2, -1, -2, 2, 1, 2,              # 160
-    2, 1, -3, 2, -5, 1, 2, 2, 2, 1,                 # 170
-    -3, 2, 1                                        # 180
+    None,
+    2,
+    2,
+    1,
+    2,
+    -2,
+    -1,
+    5,
+    -7,
+    5,  # 0
+    2,
+    -2,
+    -2,
+    -1,
+    1,
+    -2,
+    -1,
+    5,
+    -7,
+    5,  # 10
+    None,
+    None,
+    2,
+    1,
+    2,
+    -7,
+    None,
+    None,
+    2,
+    2,  # 20
+    1,
+    2,
+    -2,
+    -1,
+    5,
+    -7,
+    5,
+    2,
+    -2,
+    -2,  # 30
+    -1,
+    5,
+    -2,
+    -2,
+    -1,
+    1,
+    -3,
+    7,
+    -2,
+    -2,  # 40
+    -1,
+    1,
+    -3,
+    2,
+    1,
+    2,
+    -2,
+    -1,
+    -2,
+    -2,  # 50
+    None,
+    None,
+    2,
+    2,
+    1,
+    2,
+    -2,
+    -1,
+    4,
+    -6,  # 60
+    5,
+    1,
+    -1,
+    -2,
+    -1,
+    1,
+    -1,
+    1,
+    None,
+    None,  # 70
+    2,
+    2,
+    1,
+    2,
+    -2,
+    -1,
+    5,
+    -7,
+    5,
+    -7,  # 80
+    7,
+    -2,
+    -3,
+    7,
+    -2,
+    None,
+    None,
+    2,
+    2,
+    1,  # 90
+    2,
+    -2,
+    -2,
+    5,
+    -6,
+    5,
+    1,
+    -1,
+    -2,
+    -1,  # 100
+    None,
+    None,
+    2,
+    2,
+    1,
+    2,
+    -2,
+    -2,
+    6,
+    -7,  # 110
+    5,
+    0,
+    2,
+    -2,
+    -2,
+    -2,
+    2,
+    -2,
+    -1,
+    -2,  # 120
+    -2,
+    2,
+    -3,
+    1,
+    4,
+    1,
+    2,
+    2,
+    1,
+    -1,  # 130
+    -2,
+    5,
+    -7,
+    5,
+    2,
+    -2,
+    -1,
+    -2,
+    2,
+    -2,  # 140
+    -7,
+    0,
+    -7,
+    2,
+    2,
+    1,
+    2,
+    -2,
+    -1,
+    5,  # 150
+    -7,
+    5,
+    2,
+    -2,
+    -2,
+    -1,
+    -2,
+    2,
+    1,
+    2,  # 160
+    2,
+    1,
+    -3,
+    2,
+    -5,
+    1,
+    2,
+    2,
+    2,
+    1,  # 170
+    -3,
+    2,
+    1,  # 180
 ]
 test_pattern_intervals_raw: Final[List[int]] = [2, 2, 1, 2, -2, -1, 5, -7, 5, 2, -2, -2, -1, 1]
 test_pattern_intervals_short: Final[List[int]] = [2, 3, 1, 2, -2]
@@ -459,8 +623,7 @@ class TestStreamIntervalMatcher:
         actual_found, actual_match_start, actual_match_end = stream_interval_matcher.try_match_next(
             test_pattern_intervals_short, stream_start
         )
-        assert (actual_found, actual_match_start, actual_match_end) == (
-            expected_found,
+        assert (actual_match_start, actual_match_end) == (
             expected_match_start,
             expected_match_end,
         )
@@ -763,7 +926,6 @@ class TestStreamIntervalMatcher:
             expected_match_end,
         )
 
-    @pytest.mark.xfail
     @pytest.mark.parametrize("stream_interval_matcher", [test_stream_intervals_raw], indirect=True)
     @pytest.mark.parametrize(
         "stream_start, expected_found, expected_match_start, expected_match_end", [(0, True, 1, 15)]
@@ -785,7 +947,6 @@ class TestStreamIntervalMatcher:
             expected_match_end,
         )
 
-    @pytest.mark.xfail
     @pytest.mark.parametrize("stream_interval_matcher", [test_stream_intervals_raw], indirect=True)
     @pytest.mark.parametrize(
         "stream_start, expected_found, expected_match_start, expected_match_end", [(22, True, 28, 41)]

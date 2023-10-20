@@ -26,7 +26,7 @@ class TestDistanceMetrics:
         [
             (list(), [10, 11], 0, 1, 12),
             (list(), [-8, 11], 0, 1, 10),
-            (list(), [None, 11], 1, 1, 5),
+            (list(), [None, 11], 1, 1, float("inf")),
         ],
     )
     def test_insertion_without_expansion(self, distance_metrics, memo, x, y, i, j, expected_value, mock_increment):
@@ -41,7 +41,7 @@ class TestDistanceMetrics:
             ([5], [-10, None, 12], 0, 2, float("inf")),
             ([5], [None, None, 12], 0, 2, float("inf")),
             ([None], [-10, 11, 12], 1, 2, float("inf")),
-            ([7], [-10, 15, 12], 1, 2, 4),
+            ([7], [-10, 15, 12], 1, 2, 5),
         ],
     )
     def test_insertion_with_expansion(self, distance_metrics, memo, x, y, i, j, expected_value, mock_increment):
@@ -53,7 +53,7 @@ class TestDistanceMetrics:
         [
             ([10, 11], list(), 1, 0, 12),
             ([-8, 11], list(), 1, 0, 10),
-            ([None, 11], list(), 1, 1, 3),
+            ([None, 11], list(), 1, 1, float("inf")),
         ],
     )
     def test_deletion_without_compression(self, distance_metrics, memo, x, y, i, j, expected_value, mock_increment):

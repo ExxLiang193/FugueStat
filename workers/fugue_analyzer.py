@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import logging
 import os
-from typing import Dict, List, Tuple
+from typing import TYPE_CHECKING, Dict, List, Tuple
 
 from algorithm.model.distance_metrics import DistanceMetrics
 from algorithm.model.skip_sequence import SkipSequence
@@ -8,6 +10,9 @@ from model.composition import Composition
 from model.exceptions import InvalidFugueFormError
 from model.note_sequence import NoteSequence
 from workers.stream_matcher import StreamMatcher
+
+if TYPE_CHECKING:
+    from model.constants import Transformation
 
 logger = logging.getLogger(os.path.basename(__file__))
 
@@ -43,9 +48,11 @@ class FugueAnalyzer:
             moment = self.skip_sequence.next_moment(moment, leading_voice)
         return subject
 
-    def match_subject(self, subject: NoteSequence) -> Dict[int, List[NoteSequence]]:
+    def match_subject(
+        self, subject: NoteSequence, transformations: List[Transformation]
+    ) -> Dict[int, List[Tuple[NoteSequence, Transformation]]]:
         logger.debug(f"SUBJECT: {subject.raw_intervals}")
-        distance_metrics: DistanceMetrics = DistanceMetrics(rest_penalty_factor=5, inversion_penalty_factor=2)
+        distance_metrics: DistanceMetrics = DistanceMetrics(rest_penalty_factor=5, inversion_penalty_factor=5)
         metrics = [
             distance_metrics.replacement_with_penalty,
             distance_metrics.insertion_without_expansion,
@@ -57,6 +64,6 @@ class FugueAnalyzer:
         for voice in self.skip_sequence.voices.keys():
             stream = self.skip_sequence.voices[voice]
             logger.debug(f"VOICE START: {voice}")
-            stream_matcher = StreamMatcher(stream, 1, self.sensitivity, self.min_match, metrics)
-            all_results[voice] = stream_matcher.match_all(subject)
+            stream_matcher = StreamMatcher(stream, self.sensitivity, self.min_match, metrics)
+            all_results[voice] = stream_matcher.match_all(subject, transformations)
         return all_results
