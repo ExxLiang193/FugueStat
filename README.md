@@ -15,12 +15,14 @@ Libraries: **pyyaml**, **numpy**, **pytest**
 ## Usage
 
 ```bash
-python3 main.py <file_name>.<file_extension> [--inversion] [--debug] [--logfile=log.txt] [--help]
+python3 main.py <file_name>.<file_extension> \
+  [--reversal] [--inversion] [--reversal-inversion] [--all] [--debug] [--logfile=log.txt] [--help]
 ```
 
 - `--inversion` should be set for inverted subject to be matched.
 - `--reversal` should be set for reversed subject to be matched.
 - `--reversal-inversion` should be set for reversed-inverted subject to be matched.
+- `--all` should be set for detection of all currently supported transformations.
 - `--debug` should be set for debug logging to be transmitted to `--logfile`.
 - `--logfile` should be set to the location of the log file to write to.
 - `--help` displays the same such descriptions.
