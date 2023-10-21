@@ -27,13 +27,8 @@ class TransformationMatcher:
 
     def _extract_intervals(self, stream_start: int, padding_factor: float) -> Tuple[List[int], List[int]]:
         pattern_intervals: List[int] = self.pattern.raw_intervals
-        max_stream_intervals: int = min(
-            stream_start + int(padding_factor * len(pattern_intervals)), len(self.stream) - 1
-        )
-        stream_intervals: List[int] = [
-            None if (interval := self.stream.intervals[i]) is None else interval.value
-            for i in range(stream_start, max_stream_intervals)
-        ]
+        stream_end: int = min(stream_start + int(padding_factor * len(pattern_intervals)) - 1, len(self.stream) - 1)
+        stream_intervals: List[int] = self.stream.raw_intervals_range(stream_start, stream_end)
         return stream_intervals, pattern_intervals
 
     def _get_transformation_limits(

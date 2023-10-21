@@ -37,6 +37,18 @@ class NoteSequence:
 
         return [parse(self.notes[i - 1], self.notes[i]) for i in range(1, len(self.notes))]
 
+    def raw_intervals_range(self, low: int, high: int) -> List[Optional[int]]:
+        """[low, high]"""
+        assert low >= 0
+        assert high <= len(self.notes) - 1
+
+        def parse(left_note: Note, right_note: Note) -> Optional[int]:
+            if left_note.is_rest() or right_note.is_rest():
+                return None
+            return (right_note.position - left_note.position).value
+
+        return [parse(self.notes[i - 1], self.notes[i]) for i in range(low + 1, high + 1)]
+
     def append_note(self, note: Note) -> None:
         self.notes.append(note)
 

@@ -2,6 +2,22 @@
 
 Perform visual music-based fugal analysis using subjects, countersubjects, and their transformations.
 
+## Table of Contents
+
+- [FugueStat](#fuguestat)
+  - [Table of Contents](#table-of-contents)
+  - [Setup](#setup)
+  - [Usage](#usage)
+  - [Prerequisites (temporary)](#prerequisites-temporary)
+  - [File import and export](#file-import-and-export)
+  - [Terminology](#terminology)
+  - [Problem](#problem)
+  - [Solution](#solution)
+    - [Window matching](#window-matching)
+    - [Window propagation](#window-propagation)
+  - [Time complexity](#time-complexity)
+  - [TO-DO List](#to-do-list)
+
 ## Setup
 
 Requires: **python-3.10+**
@@ -16,7 +32,8 @@ Libraries: **pyyaml**, **numpy**, **pytest**
 
 ```bash
 python3 main.py <file_name>.<file_extension> \
-  [--reversal] [--inversion] [--reversal-inversion] [--all] [--debug] [--logfile=log.txt] [--help]
+  [--reversal] [--inversion] [--reversal-inversion] [--all] \
+  [--debug] [--logfile=log.txt] [--help]
 ```
 
 - `--inversion` should be set for inverted subject to be matched.
