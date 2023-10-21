@@ -2,13 +2,12 @@ from __future__ import annotations
 
 import logging
 import os
-from typing import TYPE_CHECKING, Dict, List, Tuple, Set
+from typing import TYPE_CHECKING, Dict, List, Set, Tuple
 
 from algorithm.model.distance_metrics import DistanceMetrics
-from algorithm.model.skip_sequence import SkipSequence
 from model.composition import Composition
-from model.exceptions import InvalidFugueFormError
 from model.note_sequence import NoteSequence
+from workers.fugal_element_extractor import FugalElementExtractor
 from workers.stream_matcher import StreamMatcher
 
 if TYPE_CHECKING:
@@ -22,31 +21,12 @@ class FugueAnalyzer:
         assert sensitivity >= 0
         assert min_match >= 1
         self.composition: Composition = composition
-        self.skip_sequence: SkipSequence = SkipSequence(composition.voices)
         self.sensitivity: float = sensitivity
         self.min_match: int = min_match
-
-    def _get_leading_voice(self) -> Tuple[int, int]:
-        first_notes = tuple(voice for voice, skip_node in self.skip_sequence[0].items() if not skip_node.note.is_rest())
-        if len(first_notes) == 0:
-            leading_voice, moment = sorted(
-                [(voice, self.skip_sequence.next_note(0, voice)) for voice in self.skip_sequence[0].keys()],
-                key=lambda pair: pair[1],
-            )[0]
-        elif len(first_notes) == 1:
-            leading_voice, moment = first_notes[0], 0
-        else:
-            raise InvalidFugueFormError("Composition should feature only one leading fugal subject.")
-
-        return leading_voice, moment
+        self._fugal_element_extractor: FugalElementExtractor = FugalElementExtractor(composition.voices)
 
     def extract_subject(self) -> NoteSequence:
-        leading_voice, moment = self._get_leading_voice()
-        subject: NoteSequence = NoteSequence()
-        while self.skip_sequence.is_solo(moment):
-            subject.append_note(self.skip_sequence.get_note(moment, leading_voice))
-            moment = self.skip_sequence.next_moment(moment, leading_voice)
-        return subject
+        return self._fugal_element_extractor.extract_subject()
 
     def match_subject(
         self, subject: NoteSequence, transformations: Set[Transformation]
@@ -61,9 +41,8 @@ class FugueAnalyzer:
             distance_metrics.deletion_with_compression,
         ]
         all_results = dict()
-        for voice in self.skip_sequence.voices.keys():
-            stream = self.skip_sequence.voices[voice]
+        for voice in self.composition.voices:
             logger.debug(f"VOICE START: {voice}")
-            stream_matcher = StreamMatcher(stream, self.sensitivity, self.min_match, metrics)
+            stream_matcher = StreamMatcher(self.composition.voices[voice], self.sensitivity, self.min_match, metrics)
             all_results[voice] = stream_matcher.match_all(subject, transformations)
         return all_results

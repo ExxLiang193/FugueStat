@@ -65,11 +65,11 @@ if __name__ == "__main__":
     config = get_config()
     logger = configure_logging(args)
     transformations = get_transformations(args)
+    music_xml_parser: MusicXMLParser = MusicXMLParser(args.filename)
+    composition = music_xml_parser.to_composition()
 
     t0 = time()
 
-    music_xml_parser: MusicXMLParser = MusicXMLParser(args.filename)
-    composition = music_xml_parser.to_composition()
     analyzer: FugueAnalyzer = FugueAnalyzer(composition, float(config["sensitivity"]), int(config["min-match"]))
     subject: NoteSequence = analyzer.extract_subject()
     matches: Dict[int, List[Tuple[NoteSequence, Transformation]]] = analyzer.match_subject(subject, transformations)

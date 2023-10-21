@@ -17,12 +17,12 @@ class TransformationMatcher:
         self,
         stream: NoteSequence,
         pattern: NoteSequence,
-        transformations: Set[Transformation],
+        transformation: Transformation,
         metrics: List[Callable],
     ) -> None:
         self.stream: NoteSequence = stream
         self.pattern: NoteSequence = pattern
-        self._transformations: Set[Transformation] = transformations
+        self._transformation: Transformation = transformation
         self._metrics: List[Callable] = metrics
 
     def _extract_intervals(self, stream_start: int, padding_factor: float) -> Tuple[List[int], List[int]]:
@@ -37,7 +37,7 @@ class TransformationMatcher:
         pattern_intervals: List[Optional[int]],
         transformation: Transformation,
         forward: bool,
-    ) -> Tuple[int, float, Transformation]:
+    ) -> Tuple[int, Transformation, float]:
         transformed_pattern_intervals = TransformedIntervals(pattern_intervals).get_transformation(transformation)
 
         if forward:
@@ -50,7 +50,7 @@ class TransformationMatcher:
             stream_intervals, transformed_pattern_intervals, self._metrics, ScalingFunctions.sqrt
         )
         directional_stream_limit, weight = directional_edit_distance.get_limits(pattern_complete=forward)
-        return directional_stream_limit, weight, transformation
+        return directional_stream_limit, transformation, weight
 
     def get_limit(self, stream_start: int, forward: bool = False) -> Tuple[int, float, Transformation]:
         stream_intervals, pattern_intervals = self._extract_intervals(stream_start, 2)
@@ -58,13 +58,9 @@ class TransformationMatcher:
             stream_intervals, pattern_intervals = stream_intervals[::-1], pattern_intervals[::-1]
 
         logger.debug("")
-        transformation_limits: List[Tuple[int, float, Transformation]] = [
-            self._get_transformation_limits(stream_intervals, pattern_intervals, transformation, forward)
-            for transformation in self._transformations
-        ]
-        best_stream_limit, best_weight, best_transformation = sorted(
-            transformation_limits, key=lambda limit_info: limit_info[1]
-        )[0]
+        best_stream_limit, best_transformation, best_weight = self._get_transformation_limits(
+            stream_intervals, pattern_intervals, self._transformation, forward
+        )
         if forward:
             logger.debug(f"--> {len(stream_intervals) - best_stream_limit}")
             return len(stream_intervals) - best_stream_limit, best_weight, best_transformation
