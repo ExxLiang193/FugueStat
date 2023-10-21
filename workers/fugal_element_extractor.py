@@ -34,7 +34,7 @@ class FugalElementExtractor:
     def extract_subject(self) -> NoteSequence:
         leading_voice, moment = self._get_leading_voice()
         subject: NoteSequence = NoteSequence()
-        while self._skip_sequence.is_solo(moment):
+        while self._skip_sequence.is_solo(moment, leading_voice):
             subject.append_note(self._skip_sequence.get_note(moment, leading_voice))
             moment = self._skip_sequence.next_moment(moment, leading_voice)
         return subject

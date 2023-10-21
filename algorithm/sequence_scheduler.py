@@ -8,6 +8,7 @@ ScheduleItem = namedtuple("ScheduleItem", ("sequence_id", "weight", "start", "en
 
 class SequenceScheduler:
     def __init__(self, weighted_sequences: List[Tuple[NoteSequence, float]]) -> None:
+        assert len(weighted_sequences) > 0
         self.weighted_sequences: List[Tuple[NoteSequence, float]] = weighted_sequences
         self._max_weight: float = max(match_info[1] for match_info in self.weighted_sequences)
 

@@ -66,8 +66,8 @@ class SkipSequence:
 
         return result
 
-    def is_solo(self, moment: int) -> bool:
-        return sum(not node.note.is_rest() for node in self.head[moment].values()) <= 1
+    def is_solo(self, moment: int, target_voice: int) -> bool:
+        return all(node.note.is_rest() for voice, node in self.head[moment].items() if voice != target_voice)
 
     def get_note(self, moment: int, voice: int) -> Note:
         return self.head[moment][voice].note

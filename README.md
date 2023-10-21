@@ -15,6 +15,7 @@ Perform visual music-based fugal analysis using subjects, countersubjects, and t
   - [Solution](#solution)
     - [Window matching](#window-matching)
     - [Window propagation](#window-propagation)
+    - [Weighted match scheduling](#weighted-match-scheduling)
   - [Time complexity](#time-complexity)
   - [TO-DO List](#to-do-list)
 
@@ -130,9 +131,9 @@ In the code and here, we will refer to a *voice* as a **note sequence** or **str
 
 ![stream-pattern matching](images/stream_pattern_matching.jpeg)
 
-There are two clear issues with what is shown above. Because note insertion/deletion is possible for the stream, a window size fixed to the length of the pattern is insufficient to capture all likely alterations. Thus, a reasonable assumption to make is that the number of matched notes in the stream is at most some factor $n$ times the size of the pattern sequence intervals $P$. A typical factor is $2$.
+There are two clear issues with what is shown above. Because note insertion/deletion is possible for the stream, a window size fixed to the length of the pattern is insufficient to capture all likely alterations. Thus, a reasonable assumption to make is that the number of matched notes in the stream is at most some factor $n$ times the size of the pattern sequence intervals $P$. A typical factor is $2$. Another issue is that sequential step-by-step iteration of the pattern over the stream is far too inefficient and uses too many unnecessary comparisons when, visually, one can tell that various parts of the pattern are distinct.
 
-There are two levels to the entire algorithm. The lower-level algorithm does something analogous to fuzzy substring matching and the higher-level algorithm controls optimized window propagation.
+There are three levels to the entire algorithm. The lower-level algorithm does something analogous to fuzzy substring matching, the higher-level algorithm controls optimized window propagation, while the final wrapper on the higher-level algorithm uses weighted interval scheduling to select the best transformations to highlight.
 
 ### Window matching
 
@@ -193,15 +194,29 @@ The *left-truncation* algorithm can be repeatedly applied starting at any state 
 
 And, thus, all the optimal matches are found. The only caveats to this implementation is that after state $1$ completes, the starting position of the stream window is moved forward the length of the match, and after state $5$ completes, only $P$ steps are taken forward, not $2P$.
 
+### Weighted match scheduling
+
+To accommodate the matching of the various transformations: *reversal*, *inversion*, *reversal-inversion*, *augmentation*, and *diminution*, the best **non-overlapping** matches must be selected.
+
+One of the possible solutions is to compute the modified edit distance for each transformation for each iteration of *left-truncation* and *right-truncation* and choose the match with the lowest weight, but this has been found to disrupt the propagation of the stream window in such a way that indeterminate and unintuitive behaviour is the consequence. Therefore, independence between matching for each transformation is sought.
+
+The better and more predictable solution is to fully compute all the matches independently for each transformation and then use a variation of *weighted interval scheduling* to combine the matches. While a typical implementation of the algorithm would *maximize* the weight accrued by all the intervals, since the *lowest-cost* matches are preferred, the cost of each match is instead subtracted from the *maximum cost of all matches*. This modifies the algorithm to instead *minimize* the cost while *maximizing* the number of matches, as shown below:
+
+![match scheduling](images/match_scheduling.png)
+
+Such is the result returned for a single voice.
+
 ## Time complexity
 
 Each window matching iteration is $O(SP) = O(2P * P) = O(P^2)$ due to the computation of edit distance.
 
-Each window matching limit searching iteration is $O(S + P)$.
+Each window matching limit searching procedure is $O(S + P)$.
 
-Each *left-truncation* operation is proceeded by at most one *right-truncation* operation. Let $L$ be the *voice* with the maximum number of notes. Then, the number of window propagation operations is $O\left(\frac{L}{P}\right)$.
+Each *left-truncation* operation is proceeded by at most one *right-truncation* operation. Let $L$ be the *voice* with the maximum number of notes. Since the shift is proportional to $P$, then the number of window propagation operations is $O\left(\frac{L}{P}\right)$.
 
-So, the total time complexity is $O\left( \frac{L}{P} * S * P \right) = O\left( \frac{L}{P} * P^2 \right) = O(LP)$.
+Weighted matched scheduling incurs $O\left( \left(\frac{L}{P}\right)^2 \right)$ because at most $\frac{L}{P}$ matches occur per transformation. *However, in practise, this contribution is negligible.*
+
+So, the total time complexity is $O\left( \frac{L}{P} * S * P + \left(\frac{L}{P}\right)^2 \right) = O\left( \frac{L}{P} * P^2 + \left(\frac{L}{P}\right)^2 \right) = O\left(LP + \left(\frac{L}{P}\right)^2 \right)$.
 
 ## TO-DO List
 
