@@ -1,8 +1,10 @@
 import math
 from functools import lru_cache
-from typing import Callable, List, Optional, Any
+from typing import Any, Callable, Optional
 
 import numpy as np
+
+from algorithm.model.edit_window import EditWindow
 
 
 class ScalingFunctions:
@@ -45,21 +47,16 @@ class DistanceMetrics:
 
     @staticmethod
     def replacement_with_penalty(
-        memo: np.array,
-        x: List[Optional[int]],
-        y: List[Optional[int]],
-        cur_i: int,
-        cur_j: int,
-        scale: Callable,
-        sentinel: Any = float("inf"),
+        memo: np.array, edit_window: EditWindow, cur_i: int, cur_j: int, scale: Callable, sentinel: Any = float("inf")
     ) -> float:
-        return memo[cur_i - 1][cur_j - 1] + scale(DistanceMetrics._safe_sub(x[cur_i - 1], y[cur_j - 1]))
+        return memo[cur_i - 1][cur_j - 1] + scale(
+            DistanceMetrics._safe_sub(edit_window.stream_intervals[cur_i - 1], edit_window.pattern_intervals[cur_j - 1])
+        )
 
     @staticmethod
     def insertion_without_expansion(
         memo: np.array,
-        x: List[Optional[int]],
-        y: List[Optional[int]],
+        edit_window: EditWindow,
         cur_i: int,
         cur_j: int,
         scale: Callable,
@@ -67,15 +64,16 @@ class DistanceMetrics:
     ) -> float:
         return (
             sentinel
-            if y[cur_j - 1] is None
-            else memo[cur_i][cur_j - 1] + scale(abs(y[cur_j - 1])) + DistanceMetrics.BASE_INSERTION_PENALTY
+            if edit_window.pattern_intervals[cur_j - 1] is None
+            else memo[cur_i][cur_j - 1]
+            + scale(abs(edit_window.pattern_intervals[cur_j - 1]))
+            + DistanceMetrics.BASE_INSERTION_PENALTY
         )
 
     @staticmethod
     def insertion_with_expansion(
         memo: np.array,
-        x: List[Optional[int]],
-        y: List[Optional[int]],
+        edit_window: EditWindow,
         cur_i: int,
         cur_j: int,
         scale: Callable,
@@ -83,19 +81,30 @@ class DistanceMetrics:
     ) -> float:
         if cur_j < 2:
             return sentinel
-        if y[cur_j - 2] is None or y[cur_j - 1] is None or x[cur_i - 1] is None:
+        if any(
+            value is None
+            for value in (
+                edit_window.pattern_intervals[cur_j - 2],
+                edit_window.pattern_intervals[cur_j - 1],
+                edit_window.stream_intervals[cur_i - 1],
+            )
+        ):
             return sentinel
         return (
             memo[cur_i - 1][cur_j - 2]
-            + scale(abs((y[cur_j - 2] + y[cur_j - 1]) - x[cur_i - 1]))
+            + scale(
+                abs(
+                    (edit_window.pattern_intervals[cur_j - 2] + edit_window.pattern_intervals[cur_j - 1])
+                    - edit_window.stream_intervals[cur_i - 1]
+                )
+            )
             + DistanceMetrics.BASE_INSERTION_PENALTY
         )
 
     @staticmethod
     def deletion_without_compression(
         memo: np.array,
-        x: List[Optional[int]],
-        y: List[Optional[int]],
+        edit_window: EditWindow,
         cur_i: int,
         cur_j: int,
         scale: Callable,
@@ -103,15 +112,16 @@ class DistanceMetrics:
     ) -> float:
         return (
             sentinel
-            if x[cur_i - 1] is None
-            else memo[cur_i - 1][cur_j] + scale(abs(x[cur_i - 1])) + DistanceMetrics.BASE_DELETION_PENALTY
+            if edit_window.stream_intervals[cur_i - 1] is None
+            else memo[cur_i - 1][cur_j]
+            + scale(abs(edit_window.stream_intervals[cur_i - 1]))
+            + DistanceMetrics.BASE_DELETION_PENALTY
         )
 
     @staticmethod
     def deletion_with_compression(
         memo: np.array,
-        x: List[Optional[int]],
-        y: List[Optional[int]],
+        edit_window: EditWindow,
         cur_i: int,
         cur_j: int,
         scale: Callable,
@@ -119,10 +129,22 @@ class DistanceMetrics:
     ) -> float:
         if cur_i < 2:
             return sentinel
-        if x[cur_i - 2] is None or x[cur_i - 1] is None or y[cur_j - 1] is None:
+        if any(
+            value is None
+            for value in (
+                edit_window.stream_intervals[cur_i - 2],
+                edit_window.stream_intervals[cur_i - 1],
+                edit_window.pattern_intervals[cur_j - 1],
+            )
+        ):
             return sentinel
         return (
             memo[cur_i - 2][cur_j - 1]
-            + scale(abs((x[cur_i - 2] + x[cur_i - 1]) - y[cur_j - 1]))
+            + scale(
+                abs(
+                    (edit_window.stream_intervals[cur_i - 2] + edit_window.stream_intervals[cur_i - 1])
+                    - edit_window.pattern_intervals[cur_j - 1]
+                )
+            )
             + DistanceMetrics.BASE_DELETION_PENALTY
         )

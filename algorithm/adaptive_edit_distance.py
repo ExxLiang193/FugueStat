@@ -2,51 +2,42 @@ from __future__ import annotations
 
 import logging
 import os
-from typing import TYPE_CHECKING, Callable, List, NamedTuple, Optional, Tuple
+from typing import Callable, List, Tuple
 
 import numpy as np
 
 from algorithm.model.distance_metrics import DistanceMetrics
-
-if TYPE_CHECKING:
-    from decimal import Decimal
+from algorithm.model.edit_window import EditWindow
 
 logger = logging.getLogger(os.path.basename(__file__))
-
-
-class EditData(NamedTuple):
-    intervals: List[Optional[int]]
-    durations: List[Decimal]
 
 
 class AdaptiveEditDistance:
     def __init__(
         self,
-        stream: List[int],
-        pattern: List[int],
+        edit_window: EditWindow,
         metrics: List[Callable],
         scaling_func: Callable,
     ) -> None:
-        self.stream: List[int] = stream
-        self.pattern: List[int] = pattern
+        self.edit_window: EditWindow = edit_window
         self.metrics: List[Callable] = metrics
         self.scale: Callable = scaling_func
         self._memo: np.array = self._compute_memo()
 
     def _compute_memo(self) -> None:
-        S, P = len(self.stream), len(self.pattern)
+        S, P = len(self.edit_window.stream_intervals), len(self.edit_window.pattern_intervals)
         memo: np.array = np.zeros((S + 1, P + 1))
         for j in range(1, P + 1):
             memo[0, j] = DistanceMetrics.insertion_without_expansion(
-                memo, self.stream, self.pattern, 0, j, self.scale, sentinel=0.0
+                memo, self.edit_window, 0, j, self.scale, sentinel=0.0
             )
         for i in range(1, S + 1):
             for j in range(1, P + 1):
-                memo[i, j] = min(metric(memo, self.stream, self.pattern, i, j, self.scale) for metric in self.metrics)
+                memo[i, j] = min(metric(memo, self.edit_window, i, j, self.scale) for metric in self.metrics)
         return memo
 
     def get_limits(self, pattern_complete=False) -> Tuple[int, float]:
-        S, P = len(self.stream), len(self.pattern)
+        S, P = len(self.edit_window.stream_intervals), len(self.edit_window.pattern_intervals)
         i = S - np.argmin(np.flip(self._memo[:, -1]))
         j = P
         logger.debug(f"\n{self._memo}")
