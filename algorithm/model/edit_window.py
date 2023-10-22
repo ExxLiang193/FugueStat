@@ -20,7 +20,8 @@ class EditWindow:
 
     def transform_pattern(self, transformation: Transformation) -> None:
         self.pattern_intervals = TransformedIntervals(self.pattern_intervals).get_transformation(transformation)
-        # TODO: Make sure to reverse durations
+        if transformation in {Transformation.REVERSAL, Transformation.REVERSAL_INVERSION}:
+            self.pattern_durations.reverse()
 
     @staticmethod
     def build(
@@ -31,7 +32,6 @@ class EditWindow:
         stream_intervals: List[int] = stream.raw_intervals_range(stream_start, stream_end)
 
         pattern_durations: List[Decimal] = pattern.raw_durations
-        stream_end: int = min(stream_start + int(padding_factor * len(pattern_intervals)), len(stream) - 1)
         stream_durations: List[Decimal] = stream.raw_durations_range(stream_start, stream_end)
 
         if reverse:

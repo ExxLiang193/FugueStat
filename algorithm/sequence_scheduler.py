@@ -37,7 +37,7 @@ class SequenceScheduler:
 
     def get_schedule(self) -> List[int]:
         items: List[ScheduleItem] = [
-            ScheduleItem(sequence_id, weight, sequence[0].ids[0], sequence[-1].ids[-1])
+            ScheduleItem(sequence_id, weight, sequence.first_note.ids[0], sequence.last_note.ids[-1])
             for sequence_id, (sequence, weight) in enumerate(self.weighted_sequences)
         ]
         items.sort(key=lambda entry: entry.end)

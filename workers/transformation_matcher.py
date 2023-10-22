@@ -38,10 +38,15 @@ class TransformationMatcher:
         edit_window.transform_pattern(transformation)
 
         if forward:
-            logger.debug(f"FORWARD : {format_array(edit_window.stream_intervals)}")
+            logger.debug(f"FORWARD : {format_array(reversed(edit_window.stream_intervals))}")
+            logger.debug(f"FORWARD : {format_array(reversed(edit_window.stream_durations))}")
+            logger.debug(f"PATTERN : {format_array(reversed(edit_window.pattern_intervals))}")
+            logger.debug(f"PATTERN : {format_array(reversed(edit_window.pattern_durations))}")
         else:
             logger.debug(f"BACKWARD: {format_array(edit_window.stream_intervals)}")
-        logger.debug(f"PATTERN : {format_array(edit_window.pattern_intervals)}")
+            logger.debug(f"BACKWARD: {format_array(edit_window.stream_durations)}")
+            logger.debug(f"PATTERN : {format_array(edit_window.pattern_intervals)}")
+            logger.debug(f"PATTERN : {format_array(edit_window.pattern_durations)}")
 
         directional_edit_distance: AdaptiveEditDistance = AdaptiveEditDistance(
             edit_window, self._metrics, ScalingFunctions.sqrt
@@ -51,7 +56,7 @@ class TransformationMatcher:
 
     def get_limit(self, stream_start: int, forward: bool = False) -> Tuple[int, float, Transformation]:
         edit_window: EditWindow = EditWindow.build(
-            self.stream, self.pattern, stream_start, padding_factor=2, reverse=forward
+            self.stream, self.pattern, stream_start, padding_factor=1.8, reverse=forward
         )
 
         logger.debug("")

@@ -24,6 +24,14 @@ class NoteSequence:
         return NoteSequence(self.notes + other.notes)
 
     @property
+    def first_note(self) -> Note:
+        return next(note for note in self.notes if not note.is_rest())
+
+    @property
+    def last_note(self) -> Note:
+        return next(note for note in reversed(self.notes) if not note.is_rest())
+
+    @property
     def intervals(self) -> List[Optional[Interval]]:
         def parse(left_note: Note, right_note: Note) -> Optional[Interval]:
             if left_note.is_rest() or right_note.is_rest():
