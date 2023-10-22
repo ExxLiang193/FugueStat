@@ -32,13 +32,13 @@ class FugueAnalyzer:
         self, subject: NoteSequence, transformations: Set[Transformation]
     ) -> Dict[int, List[Tuple[NoteSequence, Transformation]]]:
         logger.debug(f"SUBJECT: {subject.raw_intervals}")
-        distance_metrics: DistanceMetrics = DistanceMetrics(rest_penalty_factor=5, inversion_penalty_factor=2)
+        DistanceMetrics.set_penalty_factors(rest_penalty_factor=5, inversion_penalty_factor=2)
         metrics = [
-            distance_metrics.replacement_with_penalty,
-            distance_metrics.insertion_without_expansion,
-            distance_metrics.insertion_with_expansion,
-            distance_metrics.deletion_without_compression,
-            distance_metrics.deletion_with_compression,
+            DistanceMetrics.replacement_with_penalty,
+            DistanceMetrics.insertion_without_expansion,
+            DistanceMetrics.insertion_with_expansion,
+            DistanceMetrics.deletion_without_compression,
+            DistanceMetrics.deletion_with_compression,
         ]
         all_results = dict()
         for voice in self.composition.voices:

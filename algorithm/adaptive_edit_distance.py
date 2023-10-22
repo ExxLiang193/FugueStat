@@ -1,10 +1,22 @@
+from __future__ import annotations
+
 import logging
 import os
-from typing import Callable, List, Tuple
+from typing import TYPE_CHECKING, Callable, List, NamedTuple, Optional, Tuple
 
 import numpy as np
 
+from algorithm.model.distance_metrics import DistanceMetrics
+
+if TYPE_CHECKING:
+    from decimal import Decimal
+
 logger = logging.getLogger(os.path.basename(__file__))
+
+
+class EditData(NamedTuple):
+    intervals: List[Optional[int]]
+    durations: List[Decimal]
 
 
 class AdaptiveEditDistance:
@@ -25,7 +37,9 @@ class AdaptiveEditDistance:
         S, P = len(self.stream), len(self.pattern)
         memo: np.array = np.zeros((S + 1, P + 1))
         for j in range(1, P + 1):
-            memo[0, j] = memo[0, j - 1] + abs(self.pattern[j - 1] or 0.0)
+            memo[0, j] = DistanceMetrics.insertion_without_expansion(
+                memo, self.stream, self.pattern, 0, j, self.scale, sentinel=0.0
+            )
         for i in range(1, S + 1):
             for j in range(1, P + 1):
                 memo[i, j] = min(metric(memo, self.stream, self.pattern, i, j, self.scale) for metric in self.metrics)

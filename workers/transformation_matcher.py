@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import Callable, List, Optional, Set, Tuple
+from typing import Callable, List, Optional, Tuple
 
 from algorithm.adaptive_edit_distance import AdaptiveEditDistance
 from algorithm.model.distance_metrics import ScalingFunctions
