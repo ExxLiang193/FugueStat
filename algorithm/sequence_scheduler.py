@@ -27,7 +27,10 @@ class SequenceScheduler:
         max_idx = max((i for i in range(R - 1, -1, -1)), key=lambda i: memo[i])
         schedule: List[int] = [items[max_idx].sequence_id]
         for i in range(max_idx - 1, -1, -1):
-            if abs(memo[i] - (memo[max_idx] - (self._max_weight - items[max_idx].weight))) <= 0.001:
+            if (
+                items[i].end < items[max_idx].start
+                and abs(memo[i] - (memo[max_idx] - (self._max_weight - items[max_idx].weight))) <= 0.001
+            ):
                 schedule.append(items[i].sequence_id)
                 max_idx = i
         return schedule[::-1]
