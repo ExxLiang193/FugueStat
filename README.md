@@ -23,6 +23,14 @@ Perform visual music-based fugal analysis using subjects, countersubjects, and t
 
 Requires: **python-3.10+**
 
+Create virtual environment:
+```bash
+pip install virtualenv
+virtualenv -p python3 venv3
+source venv3/bin/activate
+```
+
+Install supplementary libraries:
 ```bash
 pip install -r requirements.txt
 ```
@@ -156,7 +164,7 @@ Observe that, unlike typical edit distance, there are two additional cases at th
 
 Operators and values marked with an **asterisk** denote edge case handling for rests in the music where intervals are not applicable (i.e. interval between note and rest does not exist). These edge cases are important and do actually affect the outcome of the matching results.
 
-**Absolute differences** between the intervals are used to model *interval similarity*. Expressions marked with $\ge 1$ are something I call **absolute divisors**. They are the multiplicative analog of the idea of *absolute difference*. The numerator and denominator are chosen from the arguments such that the expression evaluates to a number $\ge 1$. This helps scale the costs in proportion to the durations of the notes being compared. Note that the indices for $s_D$ and $p_D$ are $1$ higher than those for $s_I$ and $p_I$ because the list of *durations* is $1$ larger in size than the list of *intervals*.
+**Absolute differences** between the intervals are used to model *interval similarity*. Expressions marked with $\ge 1$ are something I call **absolute divisors**. They are the multiplicative analog of the idea of *absolute difference*. The numerator and denominator are chosen from the arguments such that the expression evaluates to a number $\ge 1$. This helps scale the costs in proportion to the durations of the notes being compared.
 
 Finally, a scaling function $f$ is applied to the absolute difference to level off cost as the difference grows. The function is typically $f(x)=\sqrt{cx}$ for some $c\in\mathbb{N^+}$ to avoid one single large interval deviation from preventing the pattern from matching.
 

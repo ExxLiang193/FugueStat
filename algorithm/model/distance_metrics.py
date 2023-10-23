@@ -73,7 +73,7 @@ class DistanceMetrics:
         sentinel: Any = float("inf"),
     ) -> float:
         interval_cost = cls._safe_sub(edit_window.stream_intervals[cur_i - 1], edit_window.pattern_intervals[cur_j - 1])
-        duration_cost = cls._abs_mul(edit_window.stream_durations[cur_i], edit_window.pattern_durations[cur_j])
+        duration_cost = cls._abs_mul(edit_window.stream_durations[cur_i - 1], edit_window.pattern_durations[cur_j - 1])
         return memo[cur_i - 1][cur_j - 1] + cls._combine_costs(interval_cost, duration_cost, scale)
 
     @classmethod
@@ -91,7 +91,7 @@ class DistanceMetrics:
         return (
             memo[cur_i][cur_j - 1]
             + cls._combine_costs(
-                abs(edit_window.pattern_intervals[cur_j - 1]), edit_window.pattern_durations[cur_j], scale
+                abs(edit_window.pattern_intervals[cur_j - 1]), edit_window.pattern_durations[cur_j - 1], scale
             )
             + cls.BASE_INSERTION_PENALTY
         )
@@ -122,8 +122,8 @@ class DistanceMetrics:
             - edit_window.stream_intervals[cur_i - 1]
         )
         duration_cost = cls._abs_mul(
-            edit_window.pattern_durations[cur_j - 1] + edit_window.pattern_durations[cur_j],
-            edit_window.stream_durations[cur_i],
+            edit_window.pattern_durations[cur_j - 2] + edit_window.pattern_durations[cur_j - 1],
+            edit_window.stream_durations[cur_i - 1],
         )
         return (
             memo[cur_i - 1][cur_j - 2]
@@ -146,7 +146,7 @@ class DistanceMetrics:
         return (
             memo[cur_i - 1][cur_j]
             + cls._combine_costs(
-                abs(edit_window.stream_intervals[cur_i - 1]), edit_window.stream_durations[cur_i], scale
+                abs(edit_window.stream_intervals[cur_i - 1]), edit_window.stream_durations[cur_i - 1], scale
             )
             + cls.BASE_DELETION_PENALTY
         )
@@ -177,8 +177,8 @@ class DistanceMetrics:
             - edit_window.pattern_intervals[cur_j - 1]
         )
         duration_cost = cls._abs_mul(
-            edit_window.stream_durations[cur_i - 1] + edit_window.stream_durations[cur_i],
-            edit_window.pattern_durations[cur_j],
+            edit_window.stream_durations[cur_i - 2] + edit_window.stream_durations[cur_i - 1],
+            edit_window.pattern_durations[cur_j - 1],
         )
         return (
             memo[cur_i - 2][cur_j - 1]
