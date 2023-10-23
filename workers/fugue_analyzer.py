@@ -4,6 +4,8 @@ import logging
 import os
 from typing import TYPE_CHECKING, Dict, List, Set, Tuple
 
+from tqdm import tqdm
+
 from algorithm.model.distance_metrics import DistanceMetrics
 from model.composition import Composition
 from model.note_sequence import NoteSequence
@@ -40,7 +42,7 @@ class FugueAnalyzer:
             DistanceMetrics.deletion_with_compression,
         ]
         all_results = dict()
-        for voice in self.composition.voices:
+        for voice in tqdm(self.composition.voices.keys()):
             logger.debug(f"VOICE START: {voice}")
             stream_matcher = StreamMatcher(self.composition.voices[voice], self.sensitivity, self.min_match, metrics)
             all_results[voice] = stream_matcher.match_all(subject, transformations)
