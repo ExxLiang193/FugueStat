@@ -188,6 +188,8 @@ As concluded at the end of the previous section, the modified edit distance algo
 
 This next step kills two birds with one stone. With the initial inspiration being the *Knuth-Morris-Pratt* (KMP) algorithm, which is one of the most widely implemented practical hard (vs. soft) string matching algorithms, this step can effectively replace a usage of KMP for efficient window propagation.
 
+As a side note, a sliding window is preferred over using the KMP algorithm since the former method offers, in essence, a large lookahead distance while the latter does not. Because partial matches, as a result of sequentially incrementing the matching process, may have so-called "local minimums" in the total match cost, a sliding window approach offers "momentum" to the matching process, thus maximizing the match length; a design choice inspired by *momentum-based gradient descent* in machine learning.
+
 There are 5 orientations for how an ideal pattern match can manifest in a stream. A 6th orientation where the ideal match is cut off on the left side is not applicable, but it'll be clearer why that is the case later.
 
 ![possible match locations](images/possible_match_locations.png)
@@ -233,7 +235,7 @@ Each *left-truncation* operation is proceeded by at most one *right-truncation* 
 
 Weighted matched scheduling incurs $O\left( \left(\frac{L}{P}\right)^2 \right)$ because at most $\frac{L}{P}$ matches occur per transformation. *However, in practise, this contribution is negligible.*
 
-So, the total time complexity is $O\left( \frac{L}{P} * S * P + \left(\frac{L}{P}\right)^2 \right) = O\left( \frac{L}{P} * P^2 + \left(\frac{L}{P}\right)^2 \right) = O\left(LP + \left(\frac{L}{P}\right)^2 \right)$.
+So, the total time complexity is $O\left( \frac{L}{P} * S * P + \left(\frac{L}{P}\right)^2 \right) = O\left( \frac{L}{P} * P^2 + \left(\frac{L}{P}\right)^2 \right) = O\left(LP + \left(\frac{L}{P}\right)^2 \right)$. This is an approximate estimate based on empirical evidence.
 
 ## TO-DO List
 
