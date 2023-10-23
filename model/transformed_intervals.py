@@ -26,3 +26,4 @@ class TransformedIntervals:
 
     def set_transformation(self, transformation: Transformation) -> None:
         self.values = self.get_transformation(transformation)
+        self.transformation = transformation

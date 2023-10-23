@@ -127,11 +127,13 @@ However, unlike typical applications of *edit distance*, it is not matched based
 
 Using the sequence of *intervals* as the basis for fuzzy matching, it's now possible to account for interval contractions/dilations in subsequent subject statements. One can think also of this as "soft" matching.
 
-In the code and here, we will refer to a *voice* as a **note sequence** or **stream**. The subject is synonymously called the **pattern**. The *stream* is almost always longer than the *pattern*, and like its name suggests, the *stream* continuously provides a window (i.e. a buffer) for the *pattern* to iteratively match over the entire piece of music. Again, recall that the *intervals* are used, not the absolute pitches. Let's refer to the length of the sequence of intervals for the stream and pattern to, respectively, be $S$ and $P$. Note, it should be apparent that, in code, voices are treated as separate entities as *note sequences* and are processed independently, even though notes do coincide between voices.
+Another factor which contributes to the matching process is the *durations* of the notes themselves. While intervals may contribute to the majority of the accuracy provided by the matching algorithm, only note duration will be able to provide distinction between a subject statement and both a mere stream of supporting notes and transformations such as *augmentation* and *diminution*. Thus, *intervals* and *durations* must be combined together in an intuitive way which captures the expected matching behaviour.
+
+In the code and here, we will refer to a *voice* as a **note sequence** or **stream**. The subject is synonymously called the **pattern**. The *stream* is almost always longer than the *pattern*, and like its name suggests, the *stream* continuously provides a window (i.e. a buffer) for the *pattern* to iteratively match over the entire piece of music. Again, recall that the *intervals* and *durations* are used, not the absolute pitches. Let's refer to the length of the sequence of intervals for the stream and pattern to, respectively, be $S$ and $P$. Note, it should be apparent that, in code, voices are treated as separate entities as *note sequences* and are processed independently, even though notes do coincide between voices.
 
 ![stream-pattern matching](images/stream_pattern_matching.jpeg)
 
-There are two clear issues with what is shown above. Because note insertion/deletion is possible for the stream, a window size fixed to the length of the pattern is insufficient to capture all likely alterations. Thus, a reasonable assumption to make is that the number of matched notes in the stream is at most some factor $n$ times the size of the pattern sequence intervals $P$. A typical factor is $2$. Another issue is that sequential step-by-step iteration of the pattern over the stream is far too inefficient and uses too many unnecessary comparisons when, visually, one can tell that various parts of the pattern are distinct.
+There are two clear issues with what is shown above. Because note insertion/deletion is possible for the stream, a window size fixed to the length of the pattern is insufficient to capture all likely alterations. Thus, a reasonable assumption to make is that the number of matched notes in the stream is at most some factor $n$ times the size of the pattern sequence intervals $P$. A typical factor is $2$, but circumstances may require such factor to be slightly less than $2$. Another issue is that sequential step-by-step iteration of the pattern over the stream is far too inefficient and uses too many unnecessary comparisons when, visually, one can tell that various parts of the pattern are distinct.
 
 There are three levels to the entire algorithm. The lower-level algorithm does something analogous to fuzzy substring matching, the higher-level algorithm controls optimized window propagation, while the final wrapper on the higher-level algorithm uses weighted interval scheduling to select the best transformations to highlight.
 
@@ -139,7 +141,7 @@ There are three levels to the entire algorithm. The lower-level algorithm does s
 
 Let us assume we have a stream window of length $2P$ and pattern length $P$. A typical implementation of edit distance between the stream and pattern calculates the distance between both entire sequences. The issue with this approach is that intermediate edit distance values calculate distance from the start of the stream, which would include costs that are irrelevant.
 
-Assuming the memoization matrix is of dimension $(S + 1) \times (P + 1)$, a known solution is to begin the algorithm by filling the first column with $0$ (to indicate $0$ cost of shifts) and the typical cumulative sum of costs of the absolute value of each interval value in the pattern sequence for the first row. The matrix is then filled *bottom-up* based on the diagram below and associated recurrence relation where the *stream* and *pattern* are denoted *s* and *p* respectively. Edit distance function is denoted by $E$.
+Assuming the memoization matrix is of dimension $(S + 1) \times (P + 1)$, a known solution is to begin the algorithm by filling the first column with $0$ (to indicate $0$ cost of shifts) and the typical cumulative sum of costs of each interval and duration value in the pattern sequence for the first row. The matrix is then filled *bottom-up* based on the diagram below and associated recurrence relation where the *stream* and *pattern* are denoted *s* and *p* respectively. Edit distance function is denoted by $E$. Furthermore, $s_I$ and $s_D$ denote *stream intervals* and *stream durations*, and $p_I$ and $p_D$ denote *pattern intervals* and *pattern durations*.
 
 ![edit distance table](images/edit_distance_table.png)
 
@@ -149,7 +151,11 @@ Observe that, unlike typical edit distance, there are two additional cases at th
 
 ![edit distance costs](images/cost_definitions.png)
 
-Operators and values with an asterisk denote edge case handling for rests in the music where intervals are not applicable (i.e. interval between note and rest does not exist). These edge cases are important and do actually affect the outcome of the matching results. Absolute differences are used to model "distance". Finally, a scaling function $f$ is applied to the absolute difference to level off cost as the difference grows. The function is typically $f(x)=\sqrt{cx}$ for some $c\in\mathbb{N^+}$ to avoid one single large interval deviation from preventing the pattern from matching.
+Operators and values marked with an **asterisk** denote edge case handling for rests in the music where intervals are not applicable (i.e. interval between note and rest does not exist). These edge cases are important and do actually affect the outcome of the matching results.
+
+**Absolute differences** between the intervals are used to model *interval similarity*. Expressions marked with $\ge 1$ are something I call **absolute divisors**. They are the multiplicative analog of the idea of *absolute difference*. The numerator and denominator are chosen from the arguments such that the expression evaluates to a number $\ge 1$. This helps scale the costs in proportion to the durations of the notes being compared. Note that the indices for $s_D$ and $p_D$ are $1$ higher than those for $s_I$ and $p_I$ because the list of *durations* is $1$ larger in size than the list of *intervals*.
+
+Finally, a scaling function $f$ is applied to the absolute difference to level off cost as the difference grows. The function is typically $f(x)=\sqrt{cx}$ for some $c\in\mathbb{N^+}$ to avoid one single large interval deviation from preventing the pattern from matching.
 
 The visual motivation for the definitions of $c_\text{ins+}$ and $c_\text{del+}$ are shown below. "Insertion" and "deletion" are just arbitrary semantics in this case, but the idea for the costs are based off of the observation that the compression of the intervals as a result of the added note should sum up to remain constant as before.
 
@@ -228,7 +234,7 @@ So, the total time complexity is $O\left( \frac{L}{P} * S * P + \left(\frac{L}{P
   - [x] Reversal-Inversion
   - [ ] Augmentation
   - [ ] Diminution
-- [ ] Note duration inclusion in edit distance
+- [x] Note duration inclusion in edit distance
 - [ ] Chord handling
 - [ ] Remove need for time signature
 - [ ] Fugue detection with score through keyword title matching
