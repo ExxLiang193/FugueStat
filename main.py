@@ -40,19 +40,31 @@ def get_transformations(args) -> Set[Transformation]:
         transformations.add(Transformation.REVERSAL)
     if args.reversal_inversion:
         transformations.add(Transformation.REVERSAL_INVERSION)
+    if args.augmentation:
+        transformations.add(Transformation.AUGMENTATION)
+    if args.diminution:
+        transformations.add(Transformation.DIMINUTION)
     if args.all:
-        transformations |= {Transformation.INVERSION, Transformation.REVERSAL, Transformation.REVERSAL_INVERSION}
+        transformations |= {
+            Transformation.INVERSION,
+            Transformation.REVERSAL,
+            Transformation.REVERSAL_INVERSION,
+            Transformation.AUGMENTATION,
+            Transformation.DIMINUTION,
+        }
     return transformations
 
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Generates statistics and annotations for musical fugue.")
     parser.add_argument("filename", type=str, help="Path to music file to be ingested for analysis.")
-    parser.add_argument("--inversion", action="store_true", help="Enable subject inversion detection.")
-    parser.add_argument("--reversal", action="store_true", help="Enable subject reversal detection.")
+    parser.add_argument("--reversal", "--rev", action="store_true", help="Enable subject reversal detection.")
+    parser.add_argument("--inversion", "--inv", action="store_true", help="Enable subject inversion detection.")
     parser.add_argument(
-        "--reversal-inversion", action="store_true", help="Enable subject reversal-inversion detection."
+        "--reversal-inversion", "--rev-inv", action="store_true", help="Enable subject reversal-inversion detection."
     )
+    parser.add_argument("--augmentation", "--aug", action="store_true", help="Enable subject augmentation detection.")
+    parser.add_argument("--diminution", "--dim", action="store_true", help="Enable subject diminution detection.")
     parser.add_argument("--all", action="store_true", help="Enable all subject transformation detection.")
     parser.add_argument("--debug", action="store_true", help="Toggle debug mode for logging.")
     parser.add_argument("--logfile", type=str, default="log.txt", help="Path to log file for stdout and stderr.")

@@ -33,13 +33,16 @@ Libraries: **pyyaml**, **numpy**, **pytest**
 
 ```bash
 python3 main.py <file_name>.<file_extension> \
-  [--reversal] [--inversion] [--reversal-inversion] [--all] \
+  [--reversal] [--inversion] [--reversal-inversion] \
+  [--augmentation] [--diminution] [--all] \
   [--debug] [--logfile=log.txt] [--help]
 ```
 
-- `--inversion` should be set for inverted subject to be matched.
-- `--reversal` should be set for reversed subject to be matched.
-- `--reversal-inversion` should be set for reversed-inverted subject to be matched.
+- `--reversal` or `--rev` should be set for reversed subject to be matched.
+- `--inversion` or `--inv` should be set for inverted subject to be matched.
+- `--reversal-inversion` or `--rev-inv` should be set for reversed-inverted subject to be matched.
+- `--augmentation` or `--aug` should be set for augmented subject to be matched.
+- `--diminution` or `--dim` should be set for diminished subject to be matched.
 - `--all` should be set for detection of all currently supported transformations.
 - `--debug` should be set for debug logging to be transmitted to `--logfile`.
 - `--logfile` should be set to the location of the log file to write to.
@@ -232,8 +235,9 @@ So, the total time complexity is $O\left( \frac{L}{P} * S * P + \left(\frac{L}{P
   - [x] Reversal
   - [x] Inversion
   - [x] Reversal-Inversion
-  - [ ] Augmentation
-  - [ ] Diminution
+  - [x] Augmentation
+  - [x] Diminution
+  - [ ] Multiple simultaneous transformations
 - [x] Note duration inclusion in edit distance
 - [ ] Chord handling
 - [ ] Remove need for time signature

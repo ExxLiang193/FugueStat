@@ -7,7 +7,6 @@ from algorithm.model.distance_metrics import ScalingFunctions
 from algorithm.model.edit_window import EditWindow
 from model.constants import Transformation
 from model.note_sequence import NoteSequence
-from model.transformed_intervals import TransformedIntervals
 from utility.string_format import format_array
 
 logger = logging.getLogger(os.path.basename(__file__))

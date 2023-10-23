@@ -32,7 +32,6 @@ class FugueAnalyzer:
         self, subject: NoteSequence, transformations: Set[Transformation]
     ) -> Dict[int, List[Tuple[NoteSequence, Transformation]]]:
         logger.debug(f"SUBJECT: {subject.raw_intervals}")
-        DistanceMetrics.set_penalty_factors(rest_penalty_factor=5, inversion_penalty_factor=2)
         metrics = [
             DistanceMetrics.replacement_with_penalty,
             DistanceMetrics.insertion_without_expansion,

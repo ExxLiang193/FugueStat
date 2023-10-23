@@ -3,9 +3,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, List, Optional
 
-from model.note_sequence import NoteSequence
-from model.transformed_intervals import TransformedIntervals
 from model.constants import Transformation
+from model.note_sequence import NoteSequence
+from model.transformed_sequence import TransformedSequence
 
 if TYPE_CHECKING:
     from decimal import Decimal
@@ -19,9 +19,9 @@ class EditWindow:
     pattern_durations: List[Decimal]
 
     def transform_pattern(self, transformation: Transformation) -> None:
-        self.pattern_intervals = TransformedIntervals(self.pattern_intervals).get_transformation(transformation)
-        if transformation in {Transformation.REVERSAL, Transformation.REVERSAL_INVERSION}:
-            self.pattern_durations.reverse()
+        transformer: TransformedSequence = TransformedSequence(self.pattern_intervals, self.pattern_durations)
+        self.pattern_intervals = transformer.get_interval_transformation(transformation)
+        self.pattern_durations = transformer.get_duration_transformation(transformation)
 
     @staticmethod
     def build(
