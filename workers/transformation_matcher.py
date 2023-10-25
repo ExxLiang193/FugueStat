@@ -55,7 +55,7 @@ class TransformationMatcher:
 
     def get_limit(self, stream_start: int, forward: bool = False) -> Tuple[int, float, Transformation]:
         edit_window: EditWindow = EditWindow.build(
-            self.stream, self.pattern, stream_start, padding_factor=1.8, reverse=forward
+            self.stream, self.pattern, stream_start, padding_factor=1.6, reverse=forward
         )
 
         logger.debug("")

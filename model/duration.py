@@ -7,6 +7,7 @@ from model.constants import RawDuration
 
 
 class Duration:
+    SCALE: Decimal = Decimal("1")
     PARTITIONS = (
         RawDuration.NoteWhole,
         RawDuration.NoteHalf,
@@ -31,17 +32,26 @@ class Duration:
         def format_ratio(numerator: int, denominator: int) -> str:
             return str(numerator) if denominator == 1 else f"{numerator}/{denominator}"
 
-        return "+".join(format_ratio(*part.as_integer_ratio()) for part in self.parts)
+        return "+".join(format_ratio(*(part / Duration.SCALE).as_integer_ratio()) for part in self.parts)
 
-    def _build_parts(cls, raw_duration: Decimal) -> List[RawDuration]:
-        parts = list()
-        for partition in cls.PARTITIONS:
-            if partition <= raw_duration:
-                count: Decimal = raw_duration // partition
-                raw_duration -= count * partition
-                parts.extend([partition for _ in range(int(count))])
-        return parts
+    @staticmethod
+    def set_scale(value: Decimal) -> None:
+        Duration.SCALE = value
+
+    @property
+    def real_duration(self) -> Decimal:
+        return self.raw_duration / Duration.SCALE
 
     @property
     def is_compound(self):
         return len(self.parts) > 1
+
+    def _build_parts(cls, raw_duration: Decimal) -> List[RawDuration]:
+        parts = list()
+        for real_partition in cls.PARTITIONS:
+            scaled_partition = real_partition * Duration.SCALE
+            if real_partition <= raw_duration:
+                count: Decimal = raw_duration // scaled_partition
+                raw_duration -= count * scaled_partition
+                parts.extend([scaled_partition for _ in range(int(count))])
+        return parts
